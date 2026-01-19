@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SearchThatTerm - Instant AI-Powered Text Explanations</title>
+    <title>TermLens - Instant AI-Powered Text Explanations</title>
     <meta name="description"
         content="A Chrome extension that lets you instantly research any term or sentence without leaving your page. Get quick AI-powered summaries and dive deeper with a contextual chatbot.">
     <link rel="icon" type="image/png" href="icon.png">
@@ -67,6 +67,31 @@
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             z-index: 100;
+        }
+
+        .buy-coffee-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #FFDD00;
+            color: #000000 !important;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .buy-coffee-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 221, 0, 0.4);
+        }
+
+        .buy-coffee-btn img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
         }
 
         .logo {
@@ -211,6 +236,18 @@
         .btn svg {
             width: 20px;
             height: 20px;
+        }
+
+        .store-badge {
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+
+        .store-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         }
 
         /* Features Section */
@@ -503,19 +540,19 @@
     <!-- Navigation -->
     <nav>
         <a href="#" class="logo">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24">
-                    <path
-                        d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
-                </svg>
+            <div class="logo-icon" style="background: none; box-shadow: none;">
+                <img src="icon.png" alt="TermLens Logo" style="width: 40px; height: 40px;">
             </div>
-            <span class="logo-text">SearchThatTerm</span>
+            <span class="logo-text">TermLens</span>
         </a>
         <div class="nav-links">
             <a href="#features">Features</a>
             <a href="#how-it-works">How It Works</a>
             <a href="privicy-policy.html">Privacy</a>
-            <a href="https://github.com/Ritesh381/searchThatTerm" target="_blank">GitHub</a>
+            <a href="https://buymeacoffee.com/rkprince" target="_blank" class="buy-coffee-btn">
+                <img src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo" alt="Coffee">
+                Buy me a coffee
+            </a>
         </div>
     </nav>
 
@@ -526,18 +563,15 @@
                 <path
                     d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
             </svg>
-            Free & Open Source Chrome Extension
+            Free Chrome Extension
         </div>
         <h1>Understand Any Text<br><span>Instantly</span></h1>
         <p>Select any term, phrase, or sentence on the web and get an AI-powered explanation in seconds. Dive deeper
             with follow-up questions without leaving your page.</p>
         <div class="cta-buttons">
-            <a href="https://github.com/Ritesh381/searchThatTerm" target="_blank" class="btn btn-primary">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-                Get it on GitHub
+            <a href="#" class="btn btn-primary">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png" alt="Chrome Logo" style="width: 20px; height: 20px;">
+                Add to Chrome
             </a>
             <a href="https://www.youtube.com/watch?v=P3bIdckAjAo" target="_blank" class="btn btn-secondary">
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -552,12 +586,12 @@
     <section class="video-section" id="demo">
         <div class="section-title">
             <h2>See It In Action</h2>
-            <p>Watch how to set up and use SearchThatTerm</p>
+            <p>Watch how to set up and use TermLens</p>
         </div>
         <div class="video-container">
             <iframe 
                 src="https://www.youtube.com/embed/P3bIdckAjAo" 
-                title="SearchThatTerm Demo Video"
+                title="TermLens Demo Video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 allowfullscreen>
             </iframe>
@@ -639,66 +673,28 @@
         </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works" id="how-it-works">
-        <div class="container">
-            <div class="section-title">
-                <h2>How to Install</h2>
-                <p>Get started in four simple steps</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Clone the Repository</h3>
-                        <p>Clone or download the repository from GitHub: <code
-                                style="background: rgba(124,58,237,0.2); padding: 4px 8px; border-radius: 4px;">git clone https://github.com/Ritesh381/searchThatTerm.git</code>
-                        </p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Load in Chrome</h3>
-                        <p>Open <code
-                                style="background: rgba(124,58,237,0.2); padding: 4px 8px; border-radius: 4px;">chrome://extensions/</code>,
-                            enable Developer Mode (top-right toggle), click "Load unpacked", and select the
-                            <strong>extension</strong> folder.
-                        </p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Add Your API Key</h3>
-                        <p>Click the extension icon and enter your OpenRouter API key. Get one free at <a
-                                href="https://openrouter.ai/keys" target="_blank"
-                                style="color: #a855f7;">openrouter.ai/keys</a>.</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Start Using!</h3>
-                        <p>Select any text on a webpage, click the button that appears, and get instant AI explanations.
-                            Click "Dive Deeper" to ask follow-up questions.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- CTA Section -->
     <section class="cta-section">
         <h2>Ready to Supercharge Your Reading?</h2>
-        <p>Clone the repo, load the extension, and never get stuck on unfamiliar terms again.</p>
+        <p>Install the extension and never get stuck on unfamiliar terms again.</p>
         <div class="cta-buttons">
-            <a href="https://github.com/Ritesh381/searchThatTerm" target="_blank" class="btn btn-primary">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-                Get it on GitHub
+            <a href="#" class="btn btn-primary">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png" alt="Chrome Logo" style="width: 20px; height: 20px;">
+                Add to Chrome
+            </a>
+        </div>
+    </section>
+
+    <!-- Support Section -->
+    <section class="support-section" style="padding: 100px 40px; text-align: center; background: var(--bg-card); border-top: 1px solid var(--border);">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Support the Creator</h2>
+            <p style="color: var(--text-secondary); font-size: 18px; margin-bottom: 32px; line-height: 1.6;">
+                TermLens is free to use. If you find it helpful, consider supporting the development to keep it free and fund future updates.
+            </p>
+            <a href="https://buymeacoffee.com/rkprince" target="_blank" class="buy-coffee-btn" style="font-size: 16px; padding: 12px 24px;">
+                <img src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo" alt="Coffee" style="width: 24px; height: 24px;">
+                Buy me a coffee
             </a>
         </div>
     </section>
@@ -707,18 +703,14 @@
     <footer>
         <div class="footer-content">
             <div class="footer-left">
-                <div class="logo-icon" style="width: 32px; height: 32px;">
-                    <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: white;">
-                        <path
-                            d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
-                    </svg>
+                <div class="logo-icon" style="width: 32px; height: 32px; background: none; box-shadow: none;">
+                    <img src="icon.png" alt="TermLens Logo" style="width: 32px; height: 32px;">
                 </div>
-                <span>© Made with ❤️ by Ritesh Prajapati. Open source under MIT License.</span>
+                <span>© Made with ❤️ by Ritesh Prajapati.</span>
             </div>
             <div class="footer-links">
                 <a href="privicy-policy.html">Privacy Policy</a>
-                <a href="https://github.com/Ritesh381/searchThatTerm" target="_blank">GitHub</a>
-                <a href="https://openrouter.ai" target="_blank">OpenRouter</a>
+                <a href="https://buymeacoffee.com/rkprince" target="_blank">Buy me a coffee</a>
             </div>
         </div>
     </footer>

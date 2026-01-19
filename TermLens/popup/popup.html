@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TermLens Settings</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"
+              />
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1>TermLens</h1>
+            <span class="version" id="version"></span>
+          </div>
+          <!-- Github logo in the anchor tag -->
+          <a
+            href="https://buymeacoffee.com/rkprince"
+            target="_blank"
+            class="coffee-link"
+            title="Buy me a coffee"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo"
+              alt="Buy me a coffee"
+              onerror="this.style.display = 'none'"
+              style="width: 24px; height: 24px; border-radius: 50%;"
+            />
+          </a>
+        </div>
+      </header>
+
+      <!-- Status Indicator -->
+      <div class="status-bar" id="status-bar">
+        <div class="status-indicator" id="status-indicator"></div>
+        <span id="status-text">Checking configuration...</span>
+      </div>
+
+      <!-- Main Content -->
+      <main class="main">
+        <!-- API Key Section -->
+        <section class="section">
+          <div class="section-header">
+            <h2>API Configuration</h2>
+            <a href="https://openrouter.ai/keys" target="_blank" class="link"
+              >Get API Key →</a
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="api-key">OpenRouter API Key</label>
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="api-key"
+                placeholder="sk-or-..."
+                autocomplete="off"
+              />
+              <button
+                class="toggle-visibility"
+                id="toggle-key"
+                title="Toggle visibility"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  id="eye-icon"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Model Selection -->
+        <section class="section">
+          <div class="section-header">
+            <h2>AI Model</h2>
+            <a href="https://openrouter.ai/models" target="_blank" class="link"
+              >Browse Models →</a
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="model-select">Select Model</label>
+            <select id="model-select">
+              <!-- Models will be populated by JavaScript -->
+            </select>
+          </div>
+
+          <!-- Add Custom Model -->
+          <div class="add-model-section" id="add-model-section">
+            <button class="add-model-btn" id="add-model-btn">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Model
+            </button>
+
+            <div
+              class="add-model-input-wrapper hidden"
+              id="add-model-input-wrapper"
+            >
+              <div class="add-model-fields">
+                <input
+                  type="text"
+                  id="custom-model-input"
+                  placeholder="Model ID (e.g., openai/gpt-4o)"
+                  autocomplete="off"
+                />
+                <input
+                  type="text"
+                  id="custom-label-input"
+                  placeholder="Display name (optional)"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="add-model-actions">
+                <button class="validate-btn" id="validate-btn">Add</button>
+                <button class="cancel-btn" id="cancel-add-btn">✕</button>
+              </div>
+            </div>
+
+            <div class="validation-status hidden" id="validation-status">
+              <div class="validation-spinner"></div>
+              <span>Validating model...</span>
+            </div>
+
+            <div class="validation-result hidden" id="validation-result"></div>
+          </div>
+        </section>
+
+        <!-- Preferences Section -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Preferences</h2>
+          </div>
+
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <label for="scroll-with-page">Scroll with page</label>
+              <span class="toggle-description"
+                >When enabled, the chat window will scroll along with the page.
+                When disabled, it stays fixed on screen.</span
+              >
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="scroll-with-page" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- How to Use -->
+        <section class="section how-to-use">
+          <div class="section-header">
+            <h2>How to Use</h2>
+          </div>
+
+          <ol class="steps">
+            <li>
+              <span class="step-number">1</span>
+              <span>Select any text on a webpage</span>
+            </li>
+            <li>
+              <span class="step-number">2</span>
+              <span>Click the ✨ button that appears</span>
+            </li>
+            <li>
+              <span class="step-number">3</span>
+              <span>Get an instant explanation</span>
+            </li>
+            <li>
+              <span class="step-number">4</span>
+              <span>Click "Dive Deeper" to chat more</span>
+            </li>
+          </ol>
+        </section>
+      </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+      <span id="toast-message"></span>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

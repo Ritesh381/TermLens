@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "SearchThatTerm",
+  "name": "TermLens",
   "version": "2.1.1",
-  "description": "Instantly research any term or sentence without leaving your page. Get quick summaries and dive deeper with an AI-powered contextual chatbot.",
+  "description": "Highlight any term or sentence to get instant AI explanations and dive deeper with a contextual chatbot—without leaving the page.",
   "permissions": [
     "storage",
     "activeTab"

@@ -1,4 +1,4 @@
-// Background service worker for SearchThatTerm extension
+// Background service worker for TermLens extension
 
 // Default settings (pre-configured from .env)
 const DEFAULT_SETTINGS = {
@@ -22,7 +22,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   };
 
   await chrome.storage.sync.set(settings);
-  // console.log('SearchThatTerm: Settings initialized', settings);
+  // console.log('TermLens: Settings initialized', settings);
 });
 
 // Handle messages from content script
@@ -35,7 +35,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       request.nearestHeading,
       request.pageTitle,
       request.pageDomain,
-      sender.tab.id
+      sender.tab.id,
     );
     sendResponse({ success: true, streaming: true });
     return true;
@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       request.nearestHeading,
       request.pageTitle,
       request.pageDomain,
-      sender.tab.id
+      sender.tab.id,
     );
     sendResponse({ success: true, streaming: true });
     return true;
@@ -73,7 +73,7 @@ async function handleStreamingExplanation(
   nearestHeading,
   pageTitle,
   pageDomain,
-  tabId
+  tabId,
 ) {
   const settings = await chrome.storage.sync.get(["apiKey", "model"]);
 
@@ -145,7 +145,7 @@ Format your response as:
     messages,
     tabId,
     popupId,
-    "explanation"
+    "explanation",
   );
 }
 
@@ -158,7 +158,7 @@ async function handleStreamingChat(
   nearestHeading,
   pageTitle,
   pageDomain,
-  tabId
+  tabId,
 ) {
   const settings = await chrome.storage.sync.get(["apiKey", "model"]);
 
@@ -227,7 +227,7 @@ Your role:
     formattedMessages,
     tabId,
     popupId,
-    "chat"
+    "chat",
   );
 }
 
@@ -238,7 +238,7 @@ async function streamOpenRouter(
   messages,
   tabId,
   popupId,
-  messageType
+  messageType,
 ) {
   try {
     sendStreamUpdate(tabId, popupId, { type: "start", messageType });
@@ -250,8 +250,8 @@ async function streamOpenRouter(
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
-          "HTTP-Referer": "chrome-extension://searchthatterm",
-          "X-Title": "SearchThatTerm",
+          "HTTP-Referer": "chrome-extension://termlens",
+          "X-Title": "TermLens",
         },
         body: JSON.stringify({
           model: model,
@@ -261,13 +261,13 @@ async function streamOpenRouter(
           temperature: 0.7,
           stream: true, // Enable streaming!
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(
-        errorData.error?.message || `API request failed: ${response.status}`
+        errorData.error?.message || `API request failed: ${response.status}`,
       );
     }
 

@@ -1,4 +1,4 @@
-// SearchThatTerm - Content Script
+// TermLens - Content Script
 // Multi-popup support with streaming responses
 
 (function () {
@@ -55,9 +55,9 @@
       const titleEl = popup.element.querySelector(".stt-title");
       if (titleEl) {
         if (needsNumbers) {
-          titleEl.textContent = `SearchThatTerm #${index + 1}`;
+          titleEl.textContent = `TermLens #${index + 1}`;
         } else {
-          titleEl.textContent = "SearchThatTerm";
+          titleEl.textContent = "TermLens";
         }
       }
     });
@@ -68,7 +68,7 @@
       .forEach((popup) => {
         const titleEl = popup.element.querySelector(".stt-title");
         if (titleEl) {
-          titleEl.textContent = "SearchThatTerm";
+          titleEl.textContent = "TermLens";
         }
       });
   }
@@ -90,7 +90,7 @@
 
     // Debug: Log the exact prompt being sent to OpenRouter
     if (message.action === "debugPrompt") {
-      // console.log('%c=== SearchThatTerm: OpenRouter API Request ===', 'color: #a855f7; font-weight: bold; font-size: 14px;');
+      // console.log('%c=== TermLens: OpenRouter API Request ===', 'color: #a855f7; font-weight: bold; font-size: 14px;');
       // console.log('%cType:', 'color: #22c55e; font-weight: bold;', message.type);
       // console.log('%cModel:', 'color: #22c55e; font-weight: bold;', message.model);
       // console.log('%cMessages:', 'color: #22c55e; font-weight: bold;');
@@ -183,7 +183,7 @@
         if (popup.isInChatMode) {
           setTimeout(
             () => popup.element?.querySelector("#stt-input")?.focus(),
-            50
+            50,
           );
         }
         break;
@@ -231,7 +231,7 @@
                 : escapeHtml(msg.content)
             }
           </div>
-        `
+        `,
           )
           .join("")}
         <div class="stt-message stt-message-assistant" id="stt-streaming-bubble">
@@ -337,14 +337,14 @@
       // Fixed positioning - use client coordinates
       newX = Math.min(
         e.clientX - dragOffsetX,
-        window.innerWidth - popup.element.offsetWidth
+        window.innerWidth - popup.element.offsetWidth,
       );
       newY = Math.max(0, e.clientY - dragOffsetY);
     } else {
       // Absolute positioning - use page coordinates
       newX = Math.min(
         e.pageX - dragOffsetX,
-        window.innerWidth + window.scrollX - popup.element.offsetWidth
+        window.innerWidth + window.scrollX - popup.element.offsetWidth,
       );
       newY = Math.max(0, e.pageY - dragOffsetY);
     }
@@ -580,7 +580,7 @@
     selectedText,
     contextText,
     nearestHeading,
-    selectionRect
+    selectionRect,
   ) {
     removeTriggerButton();
 
@@ -701,12 +701,12 @@
     const showCloseButton = totalCount > 1 || popup.isInChatMode;
 
     // Determine title (with number if multiple deep dives)
-    let title = "SearchThatTerm";
+    let title = "TermLens";
     if (popup.isInChatMode && deepDiveCount > 1) {
       const deepDiveIndex = popups
         .filter((p) => p.isInChatMode)
         .findIndex((p) => p.id === popup.id);
-      title = `SearchThatTerm #${deepDiveIndex + 1}`;
+      title = `TermLens #${deepDiveIndex + 1}`;
     }
 
     popup.element.innerHTML = `
@@ -724,7 +724,7 @@
       <div class="stt-selected-text">
         <div class="stt-selected-label">Selected Text</div>
         <div class="stt-selected-content">${escapeHtml(
-          popup.selectedText
+          popup.selectedText,
         )}</div>
       </div>
       
@@ -741,7 +741,7 @@
 
   function attachPopupHandlers(popup) {
     const dragHandle = popup.element.querySelector(
-      `#stt-drag-handle-${popup.id}`
+      `#stt-drag-handle-${popup.id}`,
     );
     if (dragHandle) {
       dragHandle.style.cursor = "grab";
@@ -795,7 +795,7 @@
         updatePopupNumbers();
         setTimeout(
           () => popup.element?.querySelector("#stt-input")?.focus(),
-          100
+          100,
         );
       };
     }
@@ -831,7 +831,7 @@
       return `
         <div class="stt-explanation">
           <span id="stt-streaming-text">${formatText(
-            popup.streamingContent
+            popup.streamingContent,
           )}<span class="stt-cursor"></span></span>
         </div>
       `;
@@ -894,7 +894,7 @@
       html += `
         <div class="stt-message stt-message-assistant" id="stt-streaming-bubble">
           <span id="stt-streaming-text">${formatText(
-            popup.streamingContent
+            popup.streamingContent,
           )}<span class="stt-cursor"></span></span>
         </div>
       `;
@@ -916,8 +916,8 @@
             ${popup.isLoading ? "disabled" : ""}
           ></textarea>
           <button class="stt-send-btn" id="stt-send-${popup.id}" ${
-      popup.isLoading ? "disabled" : ""
-    }>
+            popup.isLoading ? "disabled" : ""
+          }>
             ${ICONS.send}
           </button>
         </div>
@@ -1031,7 +1031,7 @@
         const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
         codeBlocks.push({ lang: lang || "", code: code.trim() });
         return placeholder;
-      }
+      },
     );
 
     // Escape HTML for the rest of the text
@@ -1056,14 +1056,14 @@
             </button>
           </div>
           <pre><code>${escapedCode}</code></pre>
-        </div>`
+        </div>`,
       );
     });
 
     // Headers (must be at start of line)
     processed = processed.replace(
       /^### (.*?)$/gm,
-      '<h4 class="stt-h4">$1</h4>'
+      '<h4 class="stt-h4">$1</h4>',
     );
     processed = processed.replace(/^## (.*?)$/gm, '<h3 class="stt-h3">$1</h3>');
     processed = processed.replace(/^# (.*?)$/gm, '<h2 class="stt-h2">$1</h2>');
@@ -1071,7 +1071,7 @@
     // Bold and italic
     processed = processed.replace(
       /\*\*\*(.*?)\*\*\*/g,
-      "<strong><em>$1</em></strong>"
+      "<strong><em>$1</em></strong>",
     );
     processed = processed.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     processed = processed.replace(/\*(.*?)\*/g, "<em>$1</em>");
@@ -1079,13 +1079,13 @@
     // Inline code (single backticks)
     processed = processed.replace(
       /`([^`]+)`/g,
-      '<code class="stt-inline-code">$1</code>'
+      '<code class="stt-inline-code">$1</code>',
     );
 
     // Blockquotes
     processed = processed.replace(
       /^&gt; (.*?)$/gm,
-      '<blockquote class="stt-blockquote">$1</blockquote>'
+      '<blockquote class="stt-blockquote">$1</blockquote>',
     );
 
     // Horizontal rule
@@ -1094,23 +1094,23 @@
     // Unordered lists (- or *)
     processed = processed.replace(
       /^[\-\*] (.*?)$/gm,
-      '<li class="stt-li">$1</li>'
+      '<li class="stt-li">$1</li>',
     );
     // Wrap consecutive li elements in ul
     processed = processed.replace(
       /(<li class="stt-li">.*?<\/li>\n?)+/g,
-      '<ul class="stt-ul">$&</ul>'
+      '<ul class="stt-ul">$&</ul>',
     );
 
     // Ordered lists (1. 2. etc)
     processed = processed.replace(
       /^\d+\. (.*?)$/gm,
-      '<li class="stt-oli">$1</li>'
+      '<li class="stt-oli">$1</li>',
     );
     // Wrap consecutive oli elements in ol
     processed = processed.replace(
       /(<li class="stt-oli">.*?<\/li>\n?)+/g,
-      '<ol class="stt-ol">$&</ol>'
+      '<ol class="stt-ol">$&</ol>',
     );
 
     // Line breaks (but not inside code blocks or after block elements)
@@ -1119,7 +1119,7 @@
     // Clean up extra br tags after block elements
     processed = processed.replace(
       /<\/(h[234]|ul|ol|blockquote|div)><br>/g,
-      "</$1>"
+      "</$1>",
     );
     processed = processed.replace(/<br><(h[234]|ul|ol|blockquote)/g, "<$1");
 

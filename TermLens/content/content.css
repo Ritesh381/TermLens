@@ -1,4 +1,4 @@
-/* SearchThatTerm - Content Script Styles */
+/* TermLens - Content Script Styles */
 
 /* CSS Variables for theming */
 :root {
@@ -34,7 +34,8 @@
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   animation: stt-fade-in 0.15s ease-out;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Fixed position mode for trigger button */
@@ -44,7 +45,9 @@
 
 .stt-trigger-btn:hover {
   transform: scale(1.1);
-  box-shadow: var(--stt-shadow), 0 0 60px rgba(124, 58, 237, 0.5);
+  box-shadow:
+    var(--stt-shadow),
+    0 0 60px rgba(124, 58, 237, 0.5);
 }
 
 .stt-trigger-btn svg {
@@ -65,7 +68,12 @@
   border: 1px solid var(--stt-border);
   border-radius: 16px;
   box-shadow: var(--stt-shadow), var(--stt-glow);
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     sans-serif;
   animation: stt-slide-up 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;

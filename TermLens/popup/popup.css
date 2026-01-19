@@ -1,4 +1,4 @@
-/* SearchThatTerm - Popup Styles */
+/* TermLens - Popup Styles */
 * {
     margin: 0;
     padding: 0;
@@ -75,40 +75,33 @@ body {
     color: var(--text-muted);
 }
 
-/* GitHub Link */
-.github-link {
+/* Coffee Link */
+.coffee-link {
     margin-left: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: #FFDD00;
+    border: none;
     transition: all 0.2s ease;
 }
 
-.github-link:hover {
-    background: var(--primary-light);
-    border-color: var(--primary);
+.coffee-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 221, 0, 0.4);
 }
 
-.github-link:active {
+.coffee-link:active {
     transform: translateY(0);
 }
 
-.github-link img {
-    width: 40px;
-    height: 40px;
-    transition: opacity 0.2s ease;
-    opacity: 0.8;
-}
-
-.github-link:hover img {
-    opacity: 1;
+.coffee-link img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
 }
 
 .status-bar {
