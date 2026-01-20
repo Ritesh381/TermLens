@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
   "name": "TermLens",
-  "version": "2.1.1",
+  "version": "2.2.1",
   "description": "Highlight any term or sentence to get instant AI explanations and dive deeper with a contextual chatbot—without leaving the page.",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://openrouter.ai/*"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://openrouter.ai/*"
+  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -22,9 +27,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "css": ["content/content.css"],
-      "js": ["content/content.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "css": [
+        "content/content.css"
+      ],
+      "js": [
+        "content/content.js"
+      ]
     }
   ],
   "background": {
@@ -32,8 +43,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }
