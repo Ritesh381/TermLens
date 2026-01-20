@@ -1,718 +1,865 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TermLens - Instant AI-Powered Text Explanations</title>
-    <meta name="description"
-        content="A Chrome extension that lets you instantly research any term or sentence without leaving your page. Get quick AI-powered summaries and dive deeper with a contextual chatbot.">
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta
+      name="description"
+      content="A Chrome extension that lets you instantly research any term or sentence without leaving your page. Get quick AI-powered summaries and dive deeper with a contextual chatbot."
+    />
+    <link rel="icon" type="image/png" href="icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        :root {
-            --primary: #7c3aed;
-            --primary-hover: #8b5cf6;
-            --primary-light: rgba(124, 58, 237, 0.1);
-            --bg-dark: #0a0a0f;
-            --bg-card: #12121a;
-            --text-primary: #f4f4f5;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --border: rgba(124, 58, 237, 0.2);
-        }
+      :root {
+        --primary: #7c3aed;
+        --primary-hover: #8b5cf6;
+        --primary-light: rgba(124, 58, 237, 0.1);
+        --bg-dark: #0a0a0f;
+        --bg-card: #12121a;
+        --text-primary: #f4f4f5;
+        --text-secondary: #a1a1aa;
+        --text-muted: #71717a;
+        --border: rgba(124, 58, 237, 0.2);
+      }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
 
-        /* Gradient background */
-        .gradient-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background:
-                radial-gradient(ellipse at 20% 20%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(124, 58, 237, 0.05) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: -1;
-        }
+      /* Gradient background */
+      .gradient-bg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+          radial-gradient(
+            ellipse at 20% 20%,
+            rgba(124, 58, 237, 0.15) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 80% 80%,
+            rgba(168, 85, 247, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            ellipse at 50% 50%,
+            rgba(124, 58, 237, 0.05) 0%,
+            transparent 70%
+          );
+        pointer-events: none;
+        z-index: -1;
+      }
 
-        /* Navigation */
+      /* Navigation */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(10, 10, 15, 0.8);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        z-index: 100;
+      }
+
+      .buy-coffee-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #ffdd00;
+        color: #000000 !important;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: transform 0.2s;
+      }
+
+      .buy-coffee-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 221, 0, 0.4);
+      }
+
+      .buy-coffee-btn img {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+      }
+
+      .logo-icon svg {
+        width: 22px;
+        height: 22px;
+        fill: white;
+      }
+
+      .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 32px;
+        align-items: center;
+      }
+
+      .nav-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--text-primary);
+      }
+
+      /* Hero Section */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 120px 40px 80px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--primary-light);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        font-size: 13px;
+        color: var(--primary-hover);
+        margin-bottom: 32px;
+      }
+
+      .hero h1 {
+        font-size: clamp(40px, 6vw, 72px);
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 24px;
+        background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero h1 span {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+      }
+
+      .hero p {
+        font-size: 18px;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin-bottom: 40px;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 32px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        color: white;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--primary);
+      }
+
+      .btn svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .store-badge {
+        display: inline-block;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+
+      .store-badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Features Section */
+      .features {
+        padding: 80px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .section-title h2 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      .section-title p {
+        color: var(--text-secondary);
+        font-size: 16px;
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+      }
+
+      .feature-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        transition: all 0.3s;
+      }
+
+      .feature-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-4px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary-light);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .feature-icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: var(--primary);
+      }
+
+      .feature-card h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .feature-card p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      /* How It Works Section */
+      .how-it-works {
+        padding: 80px 40px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .how-it-works .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        margin-top: 60px;
+      }
+
+      .step {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+      }
+
+      .step-number {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        flex-shrink: 0;
+      }
+
+      .step-content h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .step-content p {
+        color: var(--text-secondary);
+        font-size: 15px;
+      }
+
+      /* CTA Section */
+      .cta-section {
+        padding: 100px 40px;
+        text-align: center;
+      }
+
+      .cta-section h2 {
+        font-size: 40px;
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      .cta-section p {
+        color: var(--text-secondary);
+        font-size: 18px;
+        margin-bottom: 40px;
+      }
+
+      /* Footer */
+      footer {
+        padding: 40px;
+        border-top: 1px solid var(--border);
+        background: var(--bg-card);
+      }
+
+      .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .footer-left span {
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .footer-links {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .footer-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s;
+      }
+
+      .footer-links a:hover {
+        color: var(--text-primary);
+      }
+
+      .footer-links .buy-coffee-btn {
+        color: #000000 !important;
+      }
+
+      .footer-links .buy-coffee-btn:hover {
+        color: #000000 !important;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
         nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
-        }
-
-        .buy-coffee-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #FFDD00;
-            color: #000000 !important;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-
-        .buy-coffee-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 221, 0, 0.4);
-        }
-
-        .buy-coffee-btn img {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
-        }
-
-        .logo-icon svg {
-            width: 22px;
-            height: 22px;
-            fill: white;
-        }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
+          padding: 16px 20px;
         }
 
         .nav-links {
-            display: flex;
-            gap: 32px;
-            align-items: center;
+          display: none;
         }
 
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--text-primary);
-        }
-
-        /* Hero Section */
         .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 120px 40px 80px;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: var(--primary-light);
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            font-size: 13px;
-            color: var(--primary-hover);
-            margin-bottom: 32px;
+          padding: 100px 20px 60px;
         }
 
         .hero h1 {
-            font-size: clamp(40px, 6vw, 72px);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero h1 span {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
+          font-size: 32px;
         }
 
         .hero p {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin-bottom: 40px;
+          font-size: 16px;
         }
 
         .cta-buttons {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
+          flex-direction: column;
+          width: 100%;
         }
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            border: none;
+          width: 100%;
+          justify-content: center;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            color: white;
-            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary);
-        }
-
-        .btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .store-badge {
-            display: inline-block;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-
-        .store-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        /* Features Section */
-        .features {
-            padding: 80px 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-title h2 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .section-title p {
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 32px;
-            transition: all 0.3s;
-        }
-
-        .feature-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--primary-light);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .feature-icon svg {
-            width: 24px;
-            height: 24px;
-            stroke: var(--primary);
-        }
-
-        .feature-card h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        /* How It Works Section */
-        .how-it-works {
-            padding: 80px 40px;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .how-it-works .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-            margin-top: 60px;
+        .features,
+        .how-it-works,
+        .cta-section {
+          padding: 60px 20px;
         }
 
         .step {
-            display: flex;
-            gap: 32px;
-            align-items: flex-start;
-        }
-
-        .step-number {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .step-content h3 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .step-content p {
-            color: var(--text-secondary);
-            font-size: 15px;
-        }
-
-        /* CTA Section */
-        .cta-section {
-            padding: 100px 40px;
-            text-align: center;
-        }
-
-        .cta-section h2 {
-            font-size: 40px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .cta-section p {
-            color: var(--text-secondary);
-            font-size: 18px;
-            margin-bottom: 40px;
-        }
-
-        /* Footer */
-        footer {
-            padding: 40px;
-            border-top: 1px solid var(--border);
-            background: var(--bg-card);
+          flex-direction: column;
+          gap: 16px;
         }
 
         .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+          flex-direction: column;
+          text-align: center;
         }
+      }
 
-        .footer-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+      /* Video Section */
+      .video-section {
+        padding: 40px 40px 80px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
 
-        .footer-left span {
-            color: var(--text-muted);
-            font-size: 14px;
-        }
+      .video-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3);
+        border: 1px solid var(--border);
+      }
 
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
 
-        .footer-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s;
-        }
+      .video-section .section-title {
+        text-align: center;
+        margin-bottom: 32px;
+      }
 
-        .footer-links a:hover {
-            color: var(--text-primary);
-        }
+      .video-section .section-title h2 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                padding: 16px 20px;
-            }
+      .video-section .section-title p {
+        color: var(--text-secondary);
+        font-size: 16px;
+      }
 
-            .nav-links {
-                display: none;
-            }
-
-            .hero {
-                padding: 100px 20px 60px;
-            }
-
-            .hero h1 {
-                font-size: 32px;
-            }
-
-            .hero p {
-                font-size: 16px;
-            }
-
-            .cta-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .features,
-            .how-it-works,
-            .cta-section {
-                padding: 60px 20px;
-            }
-
-            .step {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                text-align: center;
-            }
-        }
-
-        /* Video Section */
+      @media (max-width: 768px) {
         .video-section {
-            padding: 40px 40px 80px;
-            max-width: 1000px;
-            margin: 0 auto;
+          padding: 20px 20px 60px;
         }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3);
-            border: 1px solid var(--border);
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .video-section .section-title {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .video-section .section-title h2 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .video-section .section-title p {
-            color: var(--text-secondary);
-            font-size: 16px;
-        }
-
-        @media (max-width: 768px) {
-            .video-section {
-                padding: 20px 20px 60px;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="gradient-bg"></div>
 
     <!-- Navigation -->
     <nav>
-        <a href="#" class="logo">
-            <div class="logo-icon" style="background: none; box-shadow: none;">
-                <img src="icon.png" alt="TermLens Logo" style="width: 40px; height: 40px;">
-            </div>
-            <span class="logo-text">TermLens</span>
-        </a>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#how-it-works">How It Works</a>
-            <a href="privicy-policy.html">Privacy</a>
-            <a href="https://buymeacoffee.com/rkprince" target="_blank" class="buy-coffee-btn">
-                <img src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo" alt="Coffee">
-                Buy me a coffee
-            </a>
+      <a href="#" class="logo">
+        <div class="logo-icon" style="background: none; box-shadow: none">
+          <img
+            src="icon.png"
+            alt="TermLens Logo"
+            style="width: 40px; height: 40px"
+          />
         </div>
+        <span class="logo-text">TermLens</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="privicy-policy.html">Privacy</a>
+        <a
+          href="https://buymeacoffee.com/rkprince"
+          target="_blank"
+          class="buy-coffee-btn"
+        >
+          <img
+            src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo"
+            alt="Coffee"
+          />
+          Buy me a coffee
+        </a>
+      </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="badge">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path
-                    d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
-            </svg>
-            Free Chrome Extension
-        </div>
-        <h1>Understand Any Text<br><span>Instantly</span></h1>
-        <p>Select any term, phrase, or sentence on the web and get an AI-powered explanation in seconds. Dive deeper
-            with follow-up questions without leaving your page.</p>
-        <div class="cta-buttons">
-            <a href="#" class="btn btn-primary">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png" alt="Chrome Logo" style="width: 20px; height: 20px;">
-                Add to Chrome
-            </a>
-            <a href="https://youtu.be/12O84IL_9vE" target="_blank" class="btn btn-secondary">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-                Watch Demo
-            </a>
-        </div>
+      <div class="badge">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"
+          />
+        </svg>
+        Free Chrome Extension
+      </div>
+      <h1>Understand Any Text<br /><span>Instantly</span></h1>
+      <p>
+        Select any term, phrase, or sentence on the web and get an AI-powered
+        explanation in seconds. Dive deeper with follow-up questions without
+        leaving your page.
+      </p>
+      <div class="cta-buttons">
+        <a href="#" class="btn btn-primary">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png"
+            alt="Chrome Logo"
+            style="width: 20px; height: 20px"
+          />
+          Add to Chrome
+        </a>
+        <a
+          href="https://youtu.be/12O84IL_9vE"
+          target="_blank"
+          class="btn btn-secondary"
+        >
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"
+            />
+          </svg>
+          Watch Demo
+        </a>
+      </div>
     </section>
 
     <!-- Video Demo Section -->
     <section class="video-section" id="demo">
-        <div class="section-title">
-            <h2>See It In Action</h2>
-        </div>
-        <div class="video-container">
-            <iframe 
-                src="https://www.youtube.com/embed/12O84IL_9vE?autoplay=1&mute=1&loop=1&playlist=12O84IL_9vE" 
-                title="TermLens Demo Video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                allowfullscreen>
-            </iframe>
-        </div>
+      <div class="section-title">
+        <h2>See It In Action</h2>
+      </div>
+      <div class="video-container">
+        <iframe
+          src="https://www.youtube.com/embed/12O84IL_9vE?autoplay=1&mute=1&loop=1&playlist=12O84IL_9vE"
+          title="TermLens Demo Video"
+          allow="
+            accelerometer;
+            autoplay;
+            clipboard-write;
+            encrypted-media;
+            gyroscope;
+            picture-in-picture;
+            web-share;
+          "
+          allowfullscreen
+        >
+        </iframe>
+      </div>
     </section>
 
     <!-- Features Section -->
     <section class="features" id="features">
-        <div class="section-title">
-            <h2>Powerful Features</h2>
-            <p>Everything you need to understand complex text without breaking your flow</p>
+      <div class="section-title">
+        <h2>Powerful Features</h2>
+        <p>
+          Everything you need to understand complex text without breaking your
+          flow
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+          </div>
+          <h3>Instant Explanations</h3>
+          <p>
+            Select any text on a webpage and get a clear, concise AI-generated
+            explanation in seconds. No need to open a new tab or search
+            manually.
+          </p>
         </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                </div>
-                <h3>Instant Explanations</h3>
-                <p>Select any text on a webpage and get a clear, concise AI-generated explanation in seconds. No need to
-                    open a new tab or search manually.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                    </svg>
-                </div>
-                <h3>Dive Deeper</h3>
-                <p>Want more context? Click "Dive Deeper" to start a conversation. Ask follow-up questions and explore
-                    the topic without losing your place.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                        <path d="M2 17l10 5 10-5" />
-                        <path d="M2 12l10 5 10-5" />
-                    </svg>
-                </div>
-                <h3>Multiple AI Models</h3>
-                <p>Choose from a variety of AI models through OpenRouter. Use free models for quick lookups or premium
-                    models for in-depth analysis.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                        <path d="M3 9h18" />
-                        <path d="M9 21V9" />
-                    </svg>
-                </div>
-                <h3>Multi-Popup Support</h3>
-                <p>Research multiple terms at once. Open up to 3 parallel conversations and compare explanations side by
-                    side.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                </div>
-                <h3>Privacy First</h3>
-                <p>Your data stays yours. No analytics, no tracking, no background collection. Text is only sent when
-                    you explicitly click the button.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
-                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                    </svg>
-                </div>
-                <h3>Streaming Responses</h3>
-                <p>See AI responses appear word-by-word in real-time. No waiting for the complete response before you
-                    can start reading.</p>
-            </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path
+                d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+              />
+            </svg>
+          </div>
+          <h3>Dive Deeper</h3>
+          <p>
+            Want more context? Click "Dive Deeper" to start a conversation. Ask
+            follow-up questions and explore the topic without losing your place.
+          </p>
         </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h3>Multiple AI Models</h3>
+          <p>
+            Choose from a variety of AI models through OpenRouter. Use free
+            models for quick lookups or premium models for in-depth analysis.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <path d="M3 9h18" />
+              <path d="M9 21V9" />
+            </svg>
+          </div>
+          <h3>Multi-Popup Support</h3>
+          <p>
+            Research multiple terms at once. Open up to 3 parallel conversations
+            and compare explanations side by side.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <h3>Privacy First</h3>
+          <p>
+            Your data stays yours. No analytics, no tracking, no background
+            collection. Text is only sent when you explicitly click the button.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+          <h3>Streaming Responses</h3>
+          <p>
+            See AI responses appear word-by-word in real-time. No waiting for
+            the complete response before you can start reading.
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- CTA Section -->
     <section class="cta-section">
-        <h2>Ready to Supercharge Your Reading?</h2>
-        <p>Install the extension and never get stuck on unfamiliar terms again.</p>
-        <div class="cta-buttons">
-            <a href="#" class="btn btn-primary">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png" alt="Chrome Logo" style="width: 20px; height: 20px;">
-                Add to Chrome
-            </a>
-        </div>
+      <h2>Ready to Supercharge Your Reading?</h2>
+      <p>
+        Install the extension and never get stuck on unfamiliar terms again.
+      </p>
+      <div class="cta-buttons">
+        <a href="#" class="btn btn-primary">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Chrome_Web_Store_logo_2012-2015.svg/330px-Chrome_Web_Store_logo_2012-2015.svg.png"
+            alt="Chrome Logo"
+            style="width: 20px; height: 20px"
+          />
+          Add to Chrome
+        </a>
+      </div>
     </section>
 
     <!-- Support Section -->
-    <section class="support-section" style="padding: 100px 40px; text-align: center; background: var(--bg-card); border-top: 1px solid var(--border);">
-        <div style="max-width: 600px; margin: 0 auto;">
-            <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 16px;">Support the Creator</h2>
-            <p style="color: var(--text-secondary); font-size: 18px; margin-bottom: 32px; line-height: 1.6;">
-                TermLens is free to use. If you find it helpful, consider supporting the development to keep it free and fund future updates.
-            </p>
-            <a href="https://buymeacoffee.com/rkprince" target="_blank" class="buy-coffee-btn" style="font-size: 16px; padding: 12px 24px;">
-                <img src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo" alt="Coffee" style="width: 24px; height: 24px;">
-                Buy me a coffee
-            </a>
-        </div>
+    <section
+      class="support-section"
+      style="
+        padding: 100px 40px;
+        text-align: center;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+      "
+    >
+      <div style="max-width: 600px; margin: 0 auto">
+        <h2 style="font-size: 32px; font-weight: 700; margin-bottom: 16px">
+          Support the Creator
+        </h2>
+        <p
+          style="
+            color: var(--text-secondary);
+            font-size: 18px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+          "
+        >
+          TermLens is free to use. If you find it helpful, consider supporting
+          the development to keep it free and fund future updates.
+        </p>
+        <a
+          href="https://buymeacoffee.com/rkprince"
+          target="_blank"
+          class="buy-coffee-btn"
+          style="font-size: 16px; padding: 12px 24px"
+        >
+          <img
+            src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo"
+            alt="Coffee"
+            style="width: 24px; height: 24px"
+          />
+          Buy me a coffee
+        </a>
+      </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="footer-content">
-            <div class="footer-left">
-                <div class="logo-icon" style="width: 32px; height: 32px; background: none; box-shadow: none;">
-                    <img src="icon.png" alt="TermLens Logo" style="width: 32px; height: 32px;">
-                </div>
-                <span>© Made with ❤️ by Ritesh Prajapati.</span>
-            </div>
-            <div class="footer-links">
-                <a href="privicy-policy.html">Privacy Policy</a>
-                <a href="https://buymeacoffee.com/rkprince" target="_blank">Buy me a coffee</a>
-            </div>
+      <div class="footer-content">
+        <div class="footer-left">
+          <div
+            class="logo-icon"
+            style="
+              width: 32px;
+              height: 32px;
+              background: none;
+              box-shadow: none;
+            "
+          >
+            <img
+              src="icon.png"
+              alt="TermLens Logo"
+              style="width: 32px; height: 32px"
+            />
+          </div>
+          <span>© Made with ❤️ by Ritesh Prajapati.</span>
         </div>
+        <div class="footer-links">
+          <a href="privicy-policy.html">Privacy Policy</a>
+          <a href="https://openrouter.ai" target="_blank">OpenRouter</a>
+          <a
+            href="https://buymeacoffee.com/rkprince"
+            target="_blank"
+            class="buy-coffee-btn"
+          >
+            <img
+              src="https://play-lh.googleusercontent.com/aMb_Qiolzkq8OxtQZ3Af2j8Zsp-ZZcNetR9O4xSjxH94gMA5c5gpRVbpg-3f_0L7vlo"
+              alt="Coffee"
+            />
+            Buy me a coffee
+          </a>
+        </div>
+      </div>
     </footer>
-</body>
-
+  </body>
 </html>
