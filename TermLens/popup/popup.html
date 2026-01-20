@@ -151,29 +151,8 @@
           </div>
         </section>
 
-        <!-- Preferences Section -->
-        <section class="section">
-          <div class="section-header">
-            <h2>Preferences</h2>
-          </div>
-
-          <div class="toggle-group">
-            <div class="toggle-info">
-              <label for="scroll-with-page">Scroll with page</label>
-              <span class="toggle-description"
-                >When enabled, the chat window will scroll along with the page.
-                When disabled, it stays fixed on screen.</span
-              >
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="scroll-with-page" checked />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </section>
-
         <!-- How to Use -->
-        <section class="section how-to-use">
+        <section class="section how-to-use" style="margin-top: 10px; margin-bottom: 10px;">
           <div class="section-header">
             <h2>How to Use</h2>
           </div>
@@ -197,6 +176,55 @@
             </li>
           </ol>
         </section>
+
+        <!-- Preferences Section -->
+        <section class="section">
+          <div class="section-header">
+            <h2>Preferences</h2>
+          </div>
+
+          <!-- Theme Section -->
+          <div class="custom-theme-container">
+            <div class="theme-header">
+                <span class="theme-label">THEME</span>
+                <div class="theme-mode-toggle">
+                  <button class="mode-btn" data-mode="dark" title="Dark Mode">
+                    <svg viewBox="0 0 24 24" fill="none" class="moon-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/></svg>
+                  </button>
+                  <button class="mode-btn active" data-mode="light" title="Light Mode">
+                      <svg viewBox="0 0 24 24" fill="none" class="sun-icon"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2"/></svg>
+                  </button>
+                </div>
+            </div>
+            <div class="color-palette">
+                <!-- Color Options will be rendered here -->
+                <button class="color-btn active" data-color="purple" style="--btn-color: #7c3aed;"></button>
+                <button class="color-btn" data-color="green" style="--btn-color: #10b981;"></button>
+                <button class="color-btn" data-color="yellow" style="--btn-color: #f59e0b;"></button>
+                <button class="color-btn" data-color="blue" style="--btn-color: #3b82f6;"></button>
+                <button class="color-btn" data-color="orange" style="--btn-color: #f97316;"></button>
+                <button class="color-btn" data-color="pink" style="--btn-color: #ec4899;"></button>
+                <button class="color-btn" data-color="maroon" style="--btn-color: #ef4444;"></button>
+                <button class="color-btn" data-color="cyan" style="--btn-color: #06b6d4;"></button>
+            </div>
+          </div>
+
+          <div class="toggle-group">
+            <div class="toggle-info">
+              <label for="scroll-with-page">Scroll with page</label>
+              <span class="toggle-description"
+                >When enabled, the chat window will scroll along with the page.
+                When disabled, it stays fixed on screen.</span
+              >
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="scroll-with-page" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </section>
+
+
       </main>
     </div>
 

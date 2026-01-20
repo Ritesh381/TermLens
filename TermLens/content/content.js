@@ -21,6 +21,9 @@
   // Scroll with page preference (true = absolute positioning, false = fixed positioning)
   let scrollWithPage = true;
 
+  // Theme preference
+  let currentTheme = "default";
+
   // Icons
   const ICONS = {
     close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
@@ -105,12 +108,77 @@
       scrollWithPage = message.scrollWithPage;
       updateAllPopupsPositioning();
     }
+
+    // Handle theme update
+    if (message.action === "updateTheme") {
+      updateTheme(message.theme);
+    }
   });
 
-  // Load scroll with page preference on init
-  chrome.storage.sync.get(["scrollWithPage"], (settings) => {
+  // Load preferences on init
+  chrome.storage.sync.get(["scrollWithPage", "theme"], (settings) => {
     scrollWithPage = settings.scrollWithPage !== false; // Default to true
+    if (settings.theme) {
+      updateTheme(settings.theme);
+    }
   });
+
+  function updateTheme(theme) {
+    currentTheme = theme || "default";
+
+    // Update trigger button
+    if (triggerButton) {
+      applyThemeToElement(triggerButton);
+    }
+
+    // Update all popups
+    popups.forEach((popup) => {
+      if (popup.element) {
+        applyThemeToElement(popup.element);
+      }
+    });
+  }
+
+  function applyThemeToElement(element) {
+    // Remove all existing theme classes
+    // Use Array.from to create a static copy, as removing classes modifies the live collection
+    Array.from(element.classList).forEach((cls) => {
+      if (cls.startsWith("stt-mode-") || cls.startsWith("stt-color-")) {
+        element.classList.remove(cls);
+      }
+    });
+
+    // Add new theme classes
+    if (currentTheme) {
+      // Current theme format: "mode-color", e.g. "light-purple", "dark-green"
+      // Or legacy "default" -> handled in init/update as "dark-purple" if needed,
+      // but let's assume valid "mode-color" string passed from popup.js
+
+      // Handle "default" legacy key
+      const themeStr =
+        currentTheme === "default" ? "dark-purple" : currentTheme;
+
+      // Split safely - if no hyphen, default to dark-purple fallback or handle gracefully
+      let mode = "dark";
+      let color = "purple";
+
+      if (themeStr.includes("-")) {
+        const parts = themeStr.split("-");
+        mode = parts[0];
+        color = parts[1];
+      } else {
+        // Fallback for simple strings like "green" -> "dark-green"
+        color = themeStr;
+      }
+
+      if (mode) element.classList.add(`stt-mode-${mode}`);
+      if (color) element.classList.add(`stt-color-${color}`);
+    } else {
+      // Default
+      element.classList.add("stt-mode-dark");
+      element.classList.add("stt-color-purple");
+    }
+  }
 
   // Update positioning for all popups and trigger button when setting changes
   function updateAllPopupsPositioning() {
@@ -525,6 +593,7 @@
 
     triggerButton = document.createElement("button");
     triggerButton.className = "stt-trigger-btn";
+    applyThemeToElement(triggerButton); // Apply theme trigger button
     triggerButton.innerHTML = ICONS.sparkle;
     triggerButton.title = "Explain this";
 
@@ -604,6 +673,7 @@
 
     const popupEl = document.createElement("div");
     popupEl.className = "stt-popup";
+    applyThemeToElement(popupEl); // Apply theme to popup
     popupEl.id = popupId;
 
     // Apply fixed positioning if scrollWithPage is disabled
@@ -713,7 +783,9 @@
       <div class="stt-header" id="stt-drag-handle-${popup.id}">
         <div class="stt-header-left">
           <div class="stt-drag-icon" title="Drag to move">${ICONS.drag}</div>
-          <div class="stt-logo">${ICONS.sparkle}</div>
+          <div class="stt-logo">
+            <img src="${chrome.runtime.getURL("icons/icon128.png")}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 6px;">
+          </div>
           <span class="stt-title">${title}</span>
         </div>
         <button class="stt-close-btn ${

@@ -67,6 +67,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toast = document.getElementById("toast");
   const toastMessage = document.getElementById("toast-message");
   const scrollWithPageToggle = document.getElementById("scroll-with-page");
+  // Theme Selection Elements
+  const modeBtns = Array.from(document.querySelectorAll(".mode-btn"));
+  const colorBtns = Array.from(document.querySelectorAll(".color-btn"));
 
   // Add model elements
   const addModelBtn = document.getElementById("add-model-btn");
@@ -138,6 +141,157 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
   });
+
+  // Theme Selection Logic
+  // Functions for theme selection logic
+
+  // Load saved theme and set active states
+  function setActiveTheme(themeStr) {
+    if (!themeStr) themeStr = "default";
+
+    // Parse theme string: 'light', 'dark', 'light-green', 'dark-green', etc.
+    // 'default' implies 'dark-purple' (or whatever default is)
+    // Actually, 'default' was purple. 'theme-light' was light base + purple.
+    // Let's standardise:
+    // Format: "mode-color" (e.g., "dark-purple", "light-green")
+    // "default" maps to "dark-purple" to keep consistency if needed, or we just migrate to new format.
+
+    let mode = "dark";
+    let color = "purple";
+
+    if (themeStr === "default") {
+      mode = "dark";
+      color = "purple";
+    } else if (themeStr === "light") {
+      mode = "light";
+      color = "purple";
+    } else if (themeStr === "dark") {
+      mode = "dark";
+      color = "purple";
+    } else {
+      // e.g., "green", "light-green", "dark-blue"
+      // If it starts with light- or dark-, parse it
+      if (themeStr.startsWith("light-")) {
+        mode = "light";
+        color = themeStr.replace("light-", "");
+      } else if (themeStr.startsWith("dark-")) {
+        mode = "dark";
+        color = themeStr.replace("dark-", "");
+      } else {
+        // "green" -> implied dark green? or just color?
+        // In previous step, "green" implied dark green (theme-green class).
+        // Let's assume dark if not specified for colored themes from previous step
+        mode = "dark";
+        color = themeStr;
+      }
+    }
+
+    // Update UI
+    modeBtns.forEach((btn) => {
+      if (btn.dataset.mode === mode) btn.classList.add("active");
+      else btn.classList.remove("active");
+    });
+
+    colorBtns.forEach((btn) => {
+      if (btn.dataset.color === color) btn.classList.add("active");
+      else btn.classList.remove("active");
+    });
+
+    return { mode, color };
+  }
+
+  function getSelectedTheme() {
+    // Find active element manually if querySelector fails or is stale
+    const activeModeBtn = modeBtns.find((b) => b.classList.contains("active"));
+    const activeColorBtn = colorBtns.find((b) =>
+      b.classList.contains("active"),
+    );
+
+    const mode = activeModeBtn ? activeModeBtn.dataset.mode : "dark";
+    const color = activeColorBtn ? activeColorBtn.dataset.color : "purple";
+
+    // Construct theme string
+    // logic:
+    // dark + purple -> 'default' (or 'dark-purple')
+    // light + purple -> 'light'
+    // dark + color -> 'color' (e.g. 'green') - to match previous CSS classes like .theme-green
+    // light + color -> 'light-color' (e.g. 'light-green') - NEED TO ADD CSS FOR THIS
+
+    // Actually, let's simplify and make the CSS handle generic classes.
+    // We will save valid theme strings that our CSS understands.
+    // Our CSS currently has: .theme-light, .theme-dark (neutral), .theme-green, etc. (dark colored).
+    // It does NOT have .theme-light-green.
+
+    // To support the matrix (2 modes * 8 colors), we should update CSS.
+    // BUT for now, let's map to existing classes where possible or simple combinations.
+
+    // If we want FULL support as per UI, we need to pass both independently or standardise keys.
+    // Let's standardise the SAVED value to be "mode-color" and update CSS to handle it.
+    // OR, we keep it simple:
+    // "theme-light" (light purple)
+    // "theme-dark" (dark neutral? No, user wants dark purple as default)
+
+    // Let's construct a cleaner ID: `${mode}-${color}`
+    return `${mode}-${color}`;
+  }
+
+  // Event Listeners for Mode
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      // Toggle off others
+      modeBtns.forEach((b) => b.classList.remove("active"));
+      // Toggle on this one
+      btn.classList.add("active");
+
+      await updateThemeFromUI();
+    });
+  });
+
+  // Event Listeners for Color
+  colorBtns.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      // Toggle off others
+      colorBtns.forEach((b) => b.classList.remove("active"));
+      // Toggle on this one
+      btn.classList.add("active");
+
+      await updateThemeFromUI();
+    });
+  });
+
+  async function updateThemeFromUI() {
+    const theme = getSelectedTheme();
+    await chrome.storage.sync.set({ theme });
+    applyTheme(theme);
+    // showToast("Theme updated", "success"); // Optional, maybe too noisy
+
+    // Notify info
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        chrome.tabs
+          .sendMessage(tab.id, { action: "updateTheme", theme })
+          .catch(() => {});
+      });
+    });
+  }
+
+  function applyTheme(theme) {
+    document.body.className = ""; // Clear
+
+    const [mode, color] = theme.split("-");
+
+    // We add two classes: one for mode, one for color
+    // This requires CSS refactoring to separate concerns, or we map to specific class names
+    // Let's iterate on CSS next. For now, let's add specific classes.
+    document.body.classList.add(`mode-${mode}`);
+    document.body.classList.add(`color-${color}`);
+
+    // Fallback/Legacy support for the "defaults"
+    if (mode === "light" && color === "purple")
+      document.body.classList.add("theme-light");
+    if (mode === "dark" && color === "purple")
+      document.body.classList.add("theme-default");
+  }
 
   // Add model button click
   addModelBtn.addEventListener("click", () => {
@@ -322,6 +476,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       "model",
       "customModels",
       "scrollWithPage",
+      "theme",
     ]);
 
     if (settings.apiKey) {
@@ -341,6 +496,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Load scroll with page preference (default: true - scrolls with page)
     scrollWithPageToggle.checked = settings.scrollWithPage !== false;
+
+    // Load theme
+    if (settings.theme) {
+      setActiveTheme(settings.theme);
+      applyTheme(getSelectedTheme());
+    } else {
+      // Default
+      setActiveTheme("dark-purple");
+      applyTheme("dark-purple");
+    }
 
     updateStatus(settings.apiKey);
   }
