@@ -2,57 +2,7 @@
 
 // Default models list (minimal - user adds their own)
 
-const DEFAULT_MODELS = [
-  { value: "xiaomi/mimo-v2-flash:free", label: "Xiaomi MiMo V2 Flash (Free)" },
-  {
-    value: "mistralai/devstral-2512:free",
-    label: "Mistral AI DevStral (Free)",
-  },
-  {
-    value: "nex-agi/deepseek-v3.1-nex-n1:free",
-    label: "DeepSeek V3.1 Nex N1 (Free)",
-  },
-  {
-    value: "nvidia/nemotron-3-nano-30b-a3b:free",
-    label: "Nvidia Nemotron 3 Nano 30B A3B (Free)",
-  },
-  {
-    value: "nvidia/nemotron-nano-12b-v2-vl:free",
-    label: "Nvidia Nemotron Nano 12B V2 VL (Free)",
-  },
-  {
-    value: "tngtech/deepseek-r1t2-chimera:free",
-    label: "DeepSeek R1T2 Chimera (Free)",
-  },
-  {
-    value: "tngtech/deepseek-r1t-chimera:free",
-    label: "DeepSeek R1T Chimera (Free)",
-  },
-  { value: "tngtech/tng-r1t-chimera:free", label: "TNG R1T Chimera (Free)" },
-  { value: "deepseek/deepseek-r1-0528:free", label: "DeepSeek R1 0528 (Free)" },
-  {
-    value: "meta-llama/llama-3.3-70b-instruct:free",
-    label: "Meta Llama 3.3 70B Instruct (Free)",
-  },
-  {
-    value: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
-    label: "Mistral 24B Venice Edition (Free)",
-  },
-  {
-    value: "google/gemma-3-27b-it:free",
-    label: "Google Gemma 3 27B IT (Free)",
-  },
-  {
-    value: "google/gemini-2.0-flash-exp:free",
-    label: "Google Gemini 2.0 Flash Exp (Free)",
-  },
-  {
-    value: "google/gemma-3n-e2b-it:free",
-    label: "Google Gemma 3N E2B IT (Free)",
-  },
-  { value: "openai/gpt-oss-120b:free", label: "OpenAI GPT OSS 120B (Free)" },
-  { value: "openai/gpt-oss-20b:free", label: "OpenAI GPT OSS 20B (Free)" },
-];
+let fetchedModels = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Load version from manifest.json
@@ -82,6 +32,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const cancelAddBtn = document.getElementById("cancel-add-btn");
   const validationStatus = document.getElementById("validation-status");
   const validationResult = document.getElementById("validation-result");
+  const customModelsList = document.getElementById("custom-models-list");
+  const customModelsItems = document.getElementById("custom-models-items");
 
   // Custom models (stored in sync storage)
   let customModels = [];
@@ -341,7 +293,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Check if model name already exists
-    const allModels = [...DEFAULT_MODELS, ...customModels];
+    const allModels = [...fetchedModels, ...customModels];
     if (allModels.some((m) => m.value === modelName)) {
       showValidationResult("This model is already in your list", "error");
       return;
@@ -349,7 +301,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Check if label already exists
     if (
-      allModels.some((m) => m.label.toLowerCase() === modelLabel.toLowerCase())
+      allModels.some((m) =>
+        m.label ? m.label.toLowerCase() === modelLabel.toLowerCase() : false,
+      )
     ) {
       showValidationResult(
         "This label is already used by another model",
@@ -404,6 +358,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Rebuild the select and select the new model
         populateModelSelect(modelName);
+        renderCustomModelsList();
 
         // Auto-save the new model selection
         await chrome.storage.sync.set({ model: modelName });
@@ -443,8 +398,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   function populateModelSelect(selectedValue = null) {
     modelSelect.innerHTML = "";
 
-    // Combine default and custom models (no categories, just flat list)
-    const allModels = [...DEFAULT_MODELS, ...customModels];
+    // Combine fetched and custom models
+    const allModels = [...fetchedModels, ...customModels];
+
+    if (allModels.length === 0) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Loading models...";
+      modelSelect.appendChild(option);
+      return;
+    }
 
     allModels.forEach((model) => {
       const option = document.createElement("option");
@@ -455,6 +418,87 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       modelSelect.appendChild(option);
     });
+
+    // If we have a selected value but it's not in our list (rare, but can happen during loading)
+    // Add it as a temporary option so the dropdown isn't blank
+    if (
+      selectedValue &&
+      !allModels.some((m) => m.value === selectedValue) &&
+      selectedValue !== ""
+    ) {
+      const option = document.createElement("option");
+      option.value = selectedValue;
+      option.textContent = selectedValue.split("/").pop() || selectedValue;
+      option.selected = true;
+      modelSelect.appendChild(option);
+    }
+  }
+
+  function renderCustomModelsList() {
+    if (!customModels || customModels.length === 0) {
+      customModelsList.classList.add("hidden");
+      return;
+    }
+
+    customModelsList.classList.remove("hidden");
+    customModelsItems.innerHTML = "";
+
+    customModels.forEach((model, index) => {
+      const item = document.createElement("div");
+      item.className = "custom-model-item";
+
+      const info = document.createElement("div");
+      info.className = "custom-model-info";
+
+      const label = document.createElement("span");
+      label.className = "custom-model-label";
+      label.textContent = model.label;
+
+      const value = document.createElement("span");
+      value.className = "custom-model-value";
+      value.textContent = model.value;
+
+      info.appendChild(label);
+      info.appendChild(value);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "delete-model-btn";
+      deleteBtn.title = "Delete model";
+      deleteBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" />
+        </svg>
+      `;
+
+      deleteBtn.addEventListener("click", async () => {
+        if (confirm(`Delete model "${model.label}"?`)) {
+          const isDeletedModelSelected = modelSelect.value === model.value;
+
+          customModels.splice(index, 1);
+          await chrome.storage.sync.set({ customModels });
+
+          if (isDeletedModelSelected) {
+            const nextModel =
+              customModels.length > 0
+                ? customModels[0].value
+                : fetchedModels.length > 0
+                  ? fetchedModels[0].value
+                  : "";
+            await chrome.storage.sync.set({ model: nextModel });
+            populateModelSelect(nextModel);
+          } else {
+            populateModelSelect(modelSelect.value);
+          }
+
+          renderCustomModelsList();
+          showToast("Model deleted", "success");
+        }
+      });
+
+      item.appendChild(info);
+      item.appendChild(deleteBtn);
+      customModelsItems.appendChild(item);
+    });
   }
 
   // Auto-save when model is changed
@@ -463,7 +507,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await chrome.storage.sync.set({ model });
 
     // Find the label for this model
-    const allModels = [...DEFAULT_MODELS, ...customModels];
+    const allModels = [...fetchedModels, ...customModels];
     const modelData = allModels.find((m) => m.value === model);
     const label = modelData ? modelData.label : model;
 
@@ -471,12 +515,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   async function loadSettings() {
-    const settings = await chrome.storage.sync.get([
-      "apiKey",
-      "model",
-      "customModels",
-      "scrollWithPage",
-      "theme",
+    // Load from sync and local in parallel
+    const [settings, localData] = await Promise.all([
+      chrome.storage.sync.get([
+        "apiKey",
+        "model",
+        "customModels",
+        "scrollWithPage",
+        "theme",
+      ]),
+      chrome.storage.local.get(["fetchedModels"]),
     ]);
 
     if (settings.apiKey) {
@@ -485,9 +533,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Load custom models
     customModels = settings.customModels || [];
+    fetchedModels = localData.fetchedModels || [];
+
+    // If no models at all, trigger a refresh from background
+    if (fetchedModels.length === 0) {
+      chrome.runtime.sendMessage({ action: "refreshModels" }, (response) => {
+        if (response && response.success) {
+          // Reload settings after refresh
+          chrome.storage.local.get(["fetchedModels"]).then((data) => {
+            if (data.fetchedModels && data.fetchedModels.length > 0) {
+              fetchedModels = data.fetchedModels;
+              populateModelSelect(settings.model);
+            }
+          });
+        }
+      });
+    }
 
     // Populate model select
     populateModelSelect(settings.model);
+    renderCustomModelsList();
 
     // If a model was saved, select it
     if (settings.model) {

@@ -747,3 +747,90 @@ select option {
 .hidden {
     display: none !important;
 }
+
+/* Custom Models List Styles */
+.custom-models-list {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.custom-models-list h3 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+#custom-models-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.custom-model-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.custom-model-item:hover {
+    border-color: var(--primary-light);
+    transform: translateX(2px);
+}
+
+.custom-model-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.custom-model-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.custom-model-value {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'Monaco', 'Consolas', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.delete-model-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delete-model-btn:hover {
+    background: rgba(244, 63, 94, 0.1);
+    color: var(--error);
+}
+
+.delete-model-btn svg {
+    width: 14px;
+    height: 14px;
+}

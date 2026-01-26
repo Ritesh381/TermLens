@@ -3,27 +3,115 @@
 // Default settings (pre-configured from .env)
 const DEFAULT_SETTINGS = {
   apiKey: "",
-  model: "xiaomi/mimo-v2-flash:free",
+  model: "",
   theme: "dark",
+  fetchedModels: [],
+  lastFetchTime: 0,
 };
+
+const OPENROUTER_FREE_MODELS_URL =
+  "https://openrouter.ai/api/frontend/models/find?order=latency-low-to-high&q=free";
 
 // Initialize settings on install
 chrome.runtime.onInstalled.addListener(async () => {
+  // Settings in sync storage
   const existingSettings = await chrome.storage.sync.get([
     "apiKey",
     "model",
     "theme",
+    "customModels",
   ]);
 
   const settings = {
     apiKey: existingSettings.apiKey || DEFAULT_SETTINGS.apiKey,
     model: existingSettings.model || DEFAULT_SETTINGS.model,
     theme: existingSettings.theme || DEFAULT_SETTINGS.theme,
+    customModels: existingSettings.customModels || [],
   };
 
   await chrome.storage.sync.set(settings);
-  // console.log('TermLens: Settings initialized', settings);
+
+  // Models in local storage
+  const existingLocal = await chrome.storage.local.get([
+    "fetchedModels",
+    "lastFetchTime",
+  ]);
+
+  if (!existingLocal.fetchedModels) {
+    await chrome.storage.local.set({
+      fetchedModels: DEFAULT_SETTINGS.fetchedModels,
+      lastFetchTime: DEFAULT_SETTINGS.lastFetchTime,
+    });
+  }
+
+  // Initial fetch
+  await fetchFreeModels();
 });
+
+// Check if we need to fetch models on startup
+chrome.runtime.onStartup.addListener(async () => {
+  await checkAndFetchModels();
+});
+
+// Helper to check 2-day threshold
+async function checkAndFetchModels() {
+  const { lastFetchTime, fetchedModels } = await chrome.storage.local.get([
+    "lastFetchTime",
+    "fetchedModels",
+  ]);
+  const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  if (
+    !lastFetchTime ||
+    !fetchedModels ||
+    fetchedModels.length === 0 ||
+    now - lastFetchTime > twoDaysInMs
+  ) {
+    await fetchFreeModels();
+  }
+}
+
+// Function to fetch free models from OpenRouter
+async function fetchFreeModels() {
+  try {
+    const response = await fetch(OPENROUTER_FREE_MODELS_URL);
+    if (!response.ok) throw new Error("Failed to fetch models");
+
+    const result = await response.json();
+    const models = result.data?.models || [];
+
+    const processedModels = models.map((m) => ({
+      value: m.slug,
+      label: m.short_name || m.name,
+    }));
+
+    if (processedModels.length > 0) {
+      await chrome.storage.local.set({
+        fetchedModels: processedModels,
+        lastFetchTime: Date.now(),
+      });
+
+      // If no model is selected, set it to the first fetched model
+      // Or if current model is not custom and NOT in the new fetched list, reset to first fetched
+      const { model, customModels } = await chrome.storage.sync.get([
+        "model",
+        "customModels",
+      ]);
+
+      const isCustomModel = (customModels || []).some((m) => m.value === model);
+      const isStillInFreeList = processedModels.some((m) => m.value === model);
+
+      if (!model || (!isCustomModel && !isStillInFreeList)) {
+        await chrome.storage.sync.set({ model: processedModels[0].value });
+        // console.log("TermLens: Model reset to", processedModels[0].value);
+      }
+      // console.log("TermLens: Models updated", processedModels.length);
+    }
+  } catch (error) {
+    console.error("TermLens: Error fetching models:", error);
+  }
+}
 
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -57,13 +145,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "getSettings") {
-    chrome.storage.sync
-      .get(["apiKey", "model", "theme"])
-      .then((settings) => sendResponse({ success: true, data: settings }))
+    Promise.all([
+      chrome.storage.sync.get([
+        "apiKey",
+        "model",
+        "theme",
+        "customModels",
+        "scrollWithPage",
+      ]),
+      chrome.storage.local.get(["fetchedModels", "lastFetchTime"]),
+    ])
+      .then(([syncData, localData]) => {
+        sendResponse({ success: true, data: { ...syncData, ...localData } });
+      })
+      .catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+
+  if (request.action === "refreshModels") {
+    fetchFreeModels()
+      .then(() => sendResponse({ success: true }))
       .catch((error) => sendResponse({ success: false, error: error.message }));
     return true;
   }
 });
+
+// Run check on script load as well
+checkAndFetchModels();
 
 // Stream explanation for selected text
 async function handleStreamingExplanation(
@@ -282,7 +390,7 @@ async function streamOpenRouter(
       if (done) {
         sendStreamUpdate(tabId, popupId, {
           type: "done",
-          content: fullContent,
+          content: fullContent.trim(),
           messageType,
         });
         break;
@@ -304,7 +412,7 @@ async function streamOpenRouter(
         if (data === "[DONE]") {
           sendStreamUpdate(tabId, popupId, {
             type: "done",
-            content: fullContent,
+            content: fullContent.trim(),
             messageType,
           });
           return;
@@ -315,13 +423,21 @@ async function streamOpenRouter(
           const delta = parsed.choices?.[0]?.delta?.content;
 
           if (delta) {
-            fullContent += delta;
-            sendStreamUpdate(tabId, popupId, {
-              type: "chunk",
-              chunk: delta,
-              content: fullContent,
-              messageType,
-            });
+            // Trim leading whitespace only if fullContent is still empty
+            if (fullContent === "") {
+              fullContent += delta.trimStart();
+            } else {
+              fullContent += delta;
+            }
+
+            if (fullContent !== "") {
+              sendStreamUpdate(tabId, popupId, {
+                type: "chunk",
+                chunk: delta,
+                content: fullContent,
+                messageType,
+              });
+            }
           }
         } catch (e) {
           // Skip malformed JSON chunks
