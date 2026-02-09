@@ -82,7 +82,7 @@ async function fetchFreeModels() {
     const models = result.data?.models || [];
 
     const processedModels = models.map((m) => ({
-      value: m.slug,
+      value: m?.endpoint?.model_variant_slug || m.slug,
       label: m.short_name || m.name,
     }));
 
