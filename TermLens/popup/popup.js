@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toast = document.getElementById("toast");
   const toastMessage = document.getElementById("toast-message");
   const scrollWithPageToggle = document.getElementById("scroll-with-page");
+  const customInstructionsInput = document.getElementById(
+    "custom-instructions",
+  );
+  const charCounter = document.getElementById("char-counter");
   // Theme Selection Elements
   const modeBtns = Array.from(document.querySelectorAll(".mode-btn"));
   const colorBtns = Array.from(document.querySelectorAll(".color-btn"));
@@ -92,6 +96,39 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
       });
     });
+  });
+
+  // Custom Instructions input handling
+  let customInstructionsSaveTimeout = null;
+
+  // Update character counter
+  function updateCharCounter() {
+    const length = customInstructionsInput.value.length;
+    charCounter.textContent = `${length}/300`;
+
+    // Update counter styling based on length
+    charCounter.classList.remove("warning", "limit");
+    if (length >= 300) {
+      charCounter.classList.add("limit");
+    } else if (length >= 250) {
+      charCounter.classList.add("warning");
+    }
+  }
+
+  customInstructionsInput.addEventListener("input", () => {
+    updateCharCounter();
+
+    // Clear previous timeout
+    if (customInstructionsSaveTimeout) {
+      clearTimeout(customInstructionsSaveTimeout);
+    }
+
+    // Save after 500ms of no typing
+    customInstructionsSaveTimeout = setTimeout(async () => {
+      const customInstructions = customInstructionsInput.value.trim();
+      await chrome.storage.sync.set({ customInstructions });
+      showToast("Custom instructions saved", "success");
+    }, 500);
   });
 
   // How to Use Toggle Logic
@@ -556,12 +593,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         "customModels",
         "scrollWithPage",
         "theme",
+        "customInstructions",
       ]),
       chrome.storage.local.get(["fetchedModels"]),
     ]);
 
     if (settings.apiKey) {
       apiKeyInput.value = settings.apiKey;
+    }
+
+    // Load custom instructions
+    if (settings.customInstructions) {
+      customInstructionsInput.value = settings.customInstructions;
+      updateCharCounter();
     }
 
     // Load custom models

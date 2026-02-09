@@ -183,7 +183,11 @@ async function handleStreamingExplanation(
   pageDomain,
   tabId,
 ) {
-  const settings = await chrome.storage.sync.get(["apiKey", "model"]);
+  const settings = await chrome.storage.sync.get([
+    "apiKey",
+    "model",
+    "customInstructions",
+  ]);
 
   if (!settings.apiKey) {
     sendStreamUpdate(tabId, popupId, {
@@ -195,7 +199,7 @@ async function handleStreamingExplanation(
   }
 
   // Build context-aware system prompt
-  const systemPrompt = `You are a helpful research assistant. When given a term or phrase, provide a clear, concise explanation in 2-3 sentences. Focus on the most essential information.
+  let systemPrompt = `You are a helpful research assistant. When given a term or phrase, provide a clear, concise explanation in 2-3 sentences. Focus on the most essential information.
 
 Use the provided context to give a more relevant, domain-specific explanation. The context includes:
 - The webpage title and domain (helps identify the topic/field)
@@ -206,6 +210,11 @@ Format your response as:
 - Start with a brief definition relevant to the context
 - Add one key insight or important detail
 - Keep it under 80 words`;
+
+  // Add custom instructions if present
+  if (settings.customInstructions && settings.customInstructions.trim()) {
+    systemPrompt += `\n\n**User's Custom Instructions:**\n${settings.customInstructions.trim()}`;
+  }
 
   // Build user prompt with all context
   let userPrompt = `Explain this term/phrase: "${text}"`;
@@ -268,7 +277,11 @@ async function handleStreamingChat(
   pageDomain,
   tabId,
 ) {
-  const settings = await chrome.storage.sync.get(["apiKey", "model"]);
+  const settings = await chrome.storage.sync.get([
+    "apiKey",
+    "model",
+    "customInstructions",
+  ]);
 
   if (!settings.apiKey) {
     sendStreamUpdate(tabId, popupId, {
@@ -308,6 +321,11 @@ Your role:
 - If asked to elaborate, provide more detail
 - Stay focused on helping them understand the topic
 - Be conversational and helpful`;
+
+  // Add custom instructions if present
+  if (settings.customInstructions && settings.customInstructions.trim()) {
+    systemPrompt += `\n\n**User's Custom Instructions:**\n${settings.customInstructions.trim()}`;
+  }
 
   const formattedMessages = [
     { role: "system", content: systemPrompt },

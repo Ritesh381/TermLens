@@ -799,6 +799,65 @@ select option {
     box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+/* Custom Instructions Styles */
+.custom-instructions-group {
+    margin-bottom: 12px;
+}
+
+.custom-instructions-group .input-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -2px;
+    margin-bottom: 4px;
+}
+
+.textarea-wrapper {
+    position: relative;
+}
+
+.textarea-wrapper textarea {
+    width: 100%;
+    padding: 12px 14px;
+    padding-bottom: 28px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    resize: none;
+    min-height: 80px;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.textarea-wrapper textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.textarea-wrapper textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.char-counter {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    font-size: 10px;
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.2s;
+}
+
+.char-counter.warning {
+    color: var(--warning);
+}
+
+.char-counter.limit {
+    color: var(--error);
+}
 
 .hidden {
     display: none !important;
