@@ -94,6 +94,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // How to Use Toggle Logic
+  const toggleStepsBtn = document.getElementById("toggle-steps-btn");
+  const howToUseContent = document.getElementById("how-to-use-content");
+
+  if (toggleStepsBtn && howToUseContent) {
+    // Initialize state - check if it has 'collapsed' class in HTML
+    const isCollapsed = howToUseContent.classList.contains("collapsed");
+    if (isCollapsed) {
+      toggleStepsBtn.classList.add("collapsed");
+    }
+
+    toggleStepsBtn.addEventListener("click", () => {
+      const wasCollapsed = howToUseContent.classList.contains("collapsed");
+
+      if (wasCollapsed) {
+        // Expand
+        howToUseContent.classList.remove("collapsed");
+        toggleStepsBtn.classList.remove("collapsed");
+        howToUseContent.closest(".how-to-use").classList.remove("collapsed");
+      } else {
+        // Collapse
+        howToUseContent.classList.add("collapsed");
+        toggleStepsBtn.classList.add("collapsed");
+        howToUseContent.closest(".how-to-use").classList.add("collapsed");
+      }
+    });
+
+    // Initial state check for parent
+    if (isCollapsed) {
+      howToUseContent.closest(".how-to-use").classList.add("collapsed");
+    }
+  }
+
   // Theme Selection Logic
   // Functions for theme selection logic
 

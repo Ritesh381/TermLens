@@ -182,7 +182,7 @@ body {
 
 .header {
     padding: 16px 20px;
-    background: linear-gradient(180deg, rgba(124, 58, 237, 0.12) 0%, transparent 100%);
+    background: linear-gradient(180deg, var(--primary-light) 0%, transparent 100%);
     border-bottom: 1px solid var(--border);
 }
 
@@ -366,7 +366,7 @@ input::placeholder {
 input:focus,
 select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .input-wrapper input {
@@ -424,6 +424,16 @@ select option {
     padding: 16px;
     border-radius: 12px;
     border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.how-to-use.collapsed {
+    padding: 8px 16px;
+    gap: 0;
+    margin-top: 4px;
+    margin-bottom: 4px;
 }
 
 .steps {
@@ -439,6 +449,52 @@ select option {
     gap: 12px;
     font-size: 12px;
     color: var(--text-secondary);
+}
+
+.toggle-steps-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.toggle-steps-btn:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.toggle-steps-btn svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+/* Animation styles for the collapsible section */
+.how-to-use-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-top 0.3s ease;
+    max-height: 500px;
+    opacity: 1;
+    margin-top: 12px;
+}
+
+.how-to-use-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+/* Icon rotation based on state */
+.toggle-steps-btn.collapsed svg {
+    transform: rotate(-90deg);
 }
 
 .step-number {
@@ -464,7 +520,7 @@ select option {
 .save-btn {
     width: 100%;
     padding: 12px 20px;
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
     border: none;
     border-radius: 10px;
     color: white;
@@ -475,13 +531,13 @@ select option {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 4px 15px var(--primary-light);
     transition: all 0.2s;
 }
 
 .save-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 6px 20px var(--primary-light);
 }
 
 .save-btn svg {
@@ -578,7 +634,7 @@ select option {
 
 .validate-btn {
     padding: 10px 16px;
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
     border: none;
     border-radius: 8px;
     color: white;
@@ -629,7 +685,7 @@ select option {
 .validation-spinner {
     width: 14px;
     height: 14px;
-    border: 2px solid rgba(124, 58, 237, 0.2);
+    border: 2px solid var(--primary-light);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -740,7 +796,7 @@ select option {
 }
 
 .toggle-switch input:focus + .toggle-slider {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 

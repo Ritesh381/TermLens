@@ -157,32 +157,45 @@
         </section>
 
         <!-- How to Use -->
-        <section
-          class="section how-to-use"
-          style="margin-top: 10px; margin-bottom: 10px"
-        >
+        <section class="section how-to-use">
           <div class="section-header">
             <h2>How to Use</h2>
+            <button
+              class="toggle-steps-btn"
+              id="toggle-steps-btn"
+              title="Show/Hide Instructions"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
           </div>
 
-          <ol class="steps">
-            <li>
-              <span class="step-number">1</span>
-              <span>Select any text on a webpage</span>
-            </li>
-            <li>
-              <span class="step-number">2</span>
-              <span>Click the ✨ button that appears</span>
-            </li>
-            <li>
-              <span class="step-number">3</span>
-              <span>Get an instant explanation</span>
-            </li>
-            <li>
-              <span class="step-number">4</span>
-              <span>Click "Dive Deeper" to chat more</span>
-            </li>
-          </ol>
+          <div id="how-to-use-content" class="how-to-use-content collapsed">
+            <ol class="steps">
+              <li>
+                <span class="step-number">1</span>
+                <span>Select any text on a webpage</span>
+              </li>
+              <li>
+                <span class="step-number">2</span>
+                <span>Click the ✨ button that appears</span>
+              </li>
+              <li>
+                <span class="step-number">3</span>
+                <span>Get an instant explanation</span>
+              </li>
+              <li>
+                <span class="step-number">4</span>
+                <span>Click "Dive Deeper" to chat more</span>
+              </li>
+            </ol>
+          </div>
         </section>
 
         <!-- Preferences Section -->
