@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 dotenv.load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 app = FastAPI(
@@ -106,4 +106,4 @@ async def chat(request: Request):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=os.getenv("PORT"))
