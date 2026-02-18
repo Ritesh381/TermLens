@@ -42,121 +42,194 @@
 
       <!-- Status Indicator -->
       <div class="status-bar" id="status-bar">
-        <div class="status-indicator" id="status-indicator"></div>
-        <span id="status-text">Checking configuration...</span>
+        <div class="status-indicator connected" id="status-indicator"></div>
+        <span id="status-text">Ready to use</span>
       </div>
 
       <!-- Main Content -->
       <main class="main">
-        <!-- API Key Section -->
-        <section class="section">
+        <!-- API Config -->
+        <section class="section how-to-use" id="api-config-section">
           <div class="section-header">
-            <h2>API Configuration</h2>
-            <a href="https://openrouter.ai/keys" target="_blank" class="link"
-              >Get API Key →</a
+            <h2>API Config</h2>
+            <button
+              class="toggle-steps-btn collapsed"
+              id="toggle-api-config-btn"
+              title="Show/Hide"
             >
-          </div>
-
-          <div class="input-group">
-            <label for="api-key">OpenRouter API Key</label>
-            <div class="input-wrapper">
-              <input
-                type="password"
-                id="api-key"
-                placeholder="sk-or-..."
-                autocomplete="off"
-              />
-              <button
-                class="toggle-visibility"
-                id="toggle-key"
-                title="Toggle visibility"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  id="eye-icon"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Model Selection -->
-        <section class="section">
-          <div class="section-header">
-            <h2>AI Model</h2>
-            <a href="https://openrouter.ai/models" target="_blank" class="link"
-              >Browse Models →</a
-            >
-          </div>
-
-          <div class="input-group">
-            <label for="model-select">Select Model</label>
-            <select id="model-select">
-              <!-- Models will be populated by JavaScript -->
-            </select>
-          </div>
-
-          <!-- Add Custom Model -->
-          <div class="add-model-section" id="add-model-section">
-            <button class="add-model-btn" id="add-model-btn">
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
               >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-              Add Model
             </button>
+          </div>
 
-            <div
-              class="add-model-input-wrapper hidden"
-              id="add-model-input-wrapper"
-            >
-              <div class="add-model-fields">
-                <input
-                  type="text"
-                  id="custom-model-input"
-                  placeholder="Model ID (e.g., openai/gpt-4o)"
-                  autocomplete="off"
-                />
-                <input
-                  type="text"
-                  id="custom-label-input"
-                  placeholder="Display name (optional)"
-                  autocomplete="off"
-                />
+          <div class="how-to-use-content collapsed" id="api-config-content">
+            <!-- Automatic toggle row -->
+            <div class="toggle-group mode-toggle-group">
+              <div class="toggle-info">
+                <label for="auto-mode-toggle" class="mode-toggle-label">
+                  <span class="mode-badge auto-badge">AUTO</span>
+                  Automatic (TermLens Cloud)
+                </label>
+                <span class="toggle-description">
+                  Use our free backend — no API key needed. Uncheck to use your
+                  own OpenRouter key.
+                </span>
               </div>
-              <div class="add-model-actions">
-                <button class="validate-btn" id="validate-btn">Add</button>
-                <button class="cancel-btn" id="cancel-add-btn">✕</button>
-              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="auto-mode-toggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
             </div>
 
-            <div class="validation-status hidden" id="validation-status">
-              <div class="validation-spinner"></div>
-              <span>Validating model...</span>
-            </div>
-
-            <div class="validation-result hidden" id="validation-result"></div>
-
-            <!-- Custom Models List -->
-            <div class="custom-models-list hidden" id="custom-models-list">
-              <h3>Your Custom Models</h3>
-              <div id="custom-models-items"></div>
+            <!-- Manual API key panel (hidden when auto is ON) -->
+            <div class="manual-key-panel hidden" id="manual-key-panel">
+              <div class="input-group">
+                <label for="api-key">
+                  OpenRouter API Key
+                  <a
+                    href="https://openrouter.ai/keys"
+                    target="_blank"
+                    class="link inline-link"
+                    >Get key →</a
+                  >
+                </label>
+                <span class="input-hint"
+                  >Your key is stored locally and never sent to our
+                  servers.</span
+                >
+                <div class="input-wrapper">
+                  <input
+                    type="password"
+                    id="api-key"
+                    placeholder="sk-or-v1-..."
+                    autocomplete="off"
+                  />
+                  <button
+                    class="toggle-visibility"
+                    id="toggle-key"
+                    title="Toggle visibility"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      id="eye-icon"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- How to Use -->
+        <!-- Model Config -->
+        <section class="section how-to-use" id="model-config-section">
+          <div class="section-header">
+            <h2>Model Config</h2>
+            <button
+              class="toggle-steps-btn collapsed"
+              id="toggle-model-config-btn"
+              title="Show/Hide"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="how-to-use-content collapsed" id="model-config-content">
+            <!-- Model selector -->
+            <div class="input-group">
+              <label for="model-select">
+                Active Model
+                <a
+                  href="https://openrouter.ai/models"
+                  target="_blank"
+                  class="link inline-link"
+                  >Browse →</a
+                >
+              </label>
+              <select id="model-select">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+
+            <!-- Add Custom Model -->
+            <div class="add-model-section" id="add-model-section">
+              <button class="add-model-btn" id="add-model-btn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Custom Model
+              </button>
+
+              <div
+                class="add-model-input-wrapper hidden"
+                id="add-model-input-wrapper"
+              >
+                <div class="add-model-fields">
+                  <input
+                    type="text"
+                    id="custom-model-input"
+                    placeholder="Model ID (e.g., openai/gpt-4o)"
+                    autocomplete="off"
+                  />
+                  <input
+                    type="text"
+                    id="custom-label-input"
+                    placeholder="Display name (optional)"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="add-model-actions">
+                  <button class="validate-btn" id="validate-btn">Add</button>
+                  <button class="cancel-btn" id="cancel-add-btn">✕</button>
+                </div>
+              </div>
+
+              <div class="validation-status hidden" id="validation-status">
+                <div class="validation-spinner"></div>
+                <span>Validating model...</span>
+              </div>
+
+              <div
+                class="validation-result hidden"
+                id="validation-result"
+              ></div>
+
+              <!-- Custom Models List -->
+              <div class="custom-models-list hidden" id="custom-models-list">
+                <h3>Your Custom Models</h3>
+                <div id="custom-models-items"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- How to Use                                         -->
+        <!-- ═══════════════════════════════════════════════════ -->
         <section class="section how-to-use">
           <div class="section-header">
             <h2>How to Use</h2>
@@ -198,7 +271,9 @@
           </div>
         </section>
 
-        <!-- Preferences Section -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- Preferences                                        -->
+        <!-- ═══════════════════════════════════════════════════ -->
         <section class="section">
           <div class="section-header">
             <h2>Preferences</h2>
@@ -258,7 +333,6 @@
               </div>
             </div>
             <div class="color-palette">
-              <!-- Color Options will be rendered here -->
               <button
                 class="color-btn active"
                 data-color="purple"

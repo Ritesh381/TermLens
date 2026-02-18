@@ -1,20 +1,29 @@
 // Background service worker for TermLens extension
 
-// Default settings (pre-configured from .env)
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const BACKEND_URL = "http://localhost:8000"; // TermLens cloud proxy (no API key needed)
+const SUPABASE_KEY = "sb_publishable_zWRBSm9ANHsVQvtcdAg3yg_dydoKGMy";
+const SUPABASE_URL = "https://muzxmpphoqprtxobxdrw.supabase.co";
+const SUPABASE_MODELS_URL = `${SUPABASE_URL}/rest/v1/models?select=name,slug`;
+
+// Default settings
 const DEFAULT_SETTINGS = {
   apiKey: "",
   model: "",
-  theme: "dark",
+  theme: "dark-purple",
   fetchedModels: [],
   lastFetchTime: 0,
 };
 
-const OPENROUTER_FREE_MODELS_URL =
-  "https://openrouter.ai/api/frontend/models/find?order=latency-low-to-high&q=free";
+// ---------------------------------------------------------------------------
+// Lifecycle
+// ---------------------------------------------------------------------------
 
 // Initialize settings on install
 chrome.runtime.onInstalled.addListener(async () => {
-  // Settings in sync storage
   const existingSettings = await chrome.storage.sync.get([
     "apiKey",
     "model",
@@ -44,7 +53,6 @@ chrome.runtime.onInstalled.addListener(async () => {
     });
   }
 
-  // Initial fetch
   await fetchFreeModels();
 });
 
@@ -53,7 +61,10 @@ chrome.runtime.onStartup.addListener(async () => {
   await checkAndFetchModels();
 });
 
-// Helper to check 2-day threshold
+// ---------------------------------------------------------------------------
+// Model fetching
+// ---------------------------------------------------------------------------
+
 async function checkAndFetchModels() {
   const { lastFetchTime, fetchedModels } = await chrome.storage.local.get([
     "lastFetchTime",
@@ -72,48 +83,57 @@ async function checkAndFetchModels() {
   }
 }
 
-// Function to fetch free models from OpenRouter
 async function fetchFreeModels() {
   try {
-    const response = await fetch(OPENROUTER_FREE_MODELS_URL);
-    if (!response.ok) throw new Error("Failed to fetch models");
+    const response = await fetch(SUPABASE_MODELS_URL, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    });
 
-    const result = await response.json();
-    const models = result.data?.models || [];
+    if (!response.ok) throw new Error(`Supabase error ${response.status}`);
 
-    const processedModels = models.map((m) => ({
-      value: m?.endpoint?.model_variant_slug || m.slug,
-      label: m.short_name || m.name,
-    }));
+    const rows = await response.json(); // [{ name, slug }, ...]
+    const processedModels = rows
+      .filter((r) => r.slug)
+      .map((r) => ({ value: r.slug, label: r.name || r.slug }));
 
     if (processedModels.length > 0) {
-      await chrome.storage.local.set({
-        fetchedModels: processedModels,
-        lastFetchTime: Date.now(),
-      });
-
-      // If no model is selected, set it to the first fetched model
-      // Or if current model is not custom and NOT in the new fetched list, reset to first fetched
-      const { model, customModels } = await chrome.storage.sync.get([
-        "model",
-        "customModels",
-      ]);
-
-      const isCustomModel = (customModels || []).some((m) => m.value === model);
-      const isStillInFreeList = processedModels.some((m) => m.value === model);
-
-      if (!model || (!isCustomModel && !isStillInFreeList)) {
-        await chrome.storage.sync.set({ model: processedModels[0].value });
-        // console.log("TermLens: Model reset to", processedModels[0].value);
-      }
-      // console.log("TermLens: Models updated", processedModels.length);
+      await _saveModels(processedModels);
+      return;
     }
   } catch (error) {
-    console.error("TermLens: Error fetching models:", error);
+    console.error("TermLens: Error fetching models from Supabase:", error);
+  }
+
+  // Supabase unreachable — keep whatever is already cached
+  console.warn("TermLens: Could not refresh model list; using cached models.");
+}
+
+async function _saveModels(processedModels) {
+  await chrome.storage.local.set({
+    fetchedModels: processedModels,
+    lastFetchTime: Date.now(),
+  });
+
+  const { model, customModels } = await chrome.storage.sync.get([
+    "model",
+    "customModels",
+  ]);
+
+  const isCustomModel = (customModels || []).some((m) => m.value === model);
+  const isStillInFreeList = processedModels.some((m) => m.value === model);
+
+  if (!model || (!isCustomModel && !isStillInFreeList)) {
+    await chrome.storage.sync.set({ model: processedModels[0].value });
   }
 }
 
-// Handle messages from content script
+// ---------------------------------------------------------------------------
+// Message handler
+// ---------------------------------------------------------------------------
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getExplanation") {
     handleStreamingExplanation(
@@ -173,7 +193,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Run check on script load as well
 checkAndFetchModels();
 
-// Stream explanation for selected text
+// ---------------------------------------------------------------------------
+// Routing helper — decides whether to use backend proxy or direct OpenRouter
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns { mode: "backend" | "direct", apiKey }
+ * - autoMode true (default) → always use the TermLens backend proxy
+ * - autoMode false + user has a key → call OpenRouter directly
+ * - autoMode false + no key → error (handled in handlers below)
+ */
+function resolveRoute(settings) {
+  const isAuto = settings.autoMode !== false; // default true
+  if (isAuto) {
+    return { mode: "backend", apiKey: null };
+  }
+  const key = (settings.apiKey || "").trim();
+  return key
+    ? { mode: "direct", apiKey: key }
+    : { mode: "no-key", apiKey: null };
+}
+
+// ---------------------------------------------------------------------------
+// Explanation handler
+// ---------------------------------------------------------------------------
+
 async function handleStreamingExplanation(
   popupId,
   text,
@@ -187,18 +231,12 @@ async function handleStreamingExplanation(
     "apiKey",
     "model",
     "customInstructions",
+    "autoMode",
   ]);
 
-  if (!settings.apiKey) {
-    sendStreamUpdate(tabId, popupId, {
-      type: "error",
-      error:
-        "API key not configured. Click the extension icon to add your OpenRouter API key.",
-    });
-    return;
-  }
+  const route = resolveRoute(settings);
 
-  // Build context-aware system prompt
+  // Build system prompt
   let systemPrompt = `You are a helpful research assistant. When given a term or phrase, provide a clear, concise explanation in 2-3 sentences. Focus on the most essential information.
 
 Use the provided context to give a more relevant, domain-specific explanation. The context includes:
@@ -211,27 +249,22 @@ Format your response as:
 - Add one key insight or important detail
 - Keep it under 80 words`;
 
-  // Add custom instructions if present
   if (settings.customInstructions && settings.customInstructions.trim()) {
     systemPrompt += `\n\n**User's Custom Instructions:**\n${settings.customInstructions.trim()}`;
   }
 
-  // Build user prompt with all context
   let userPrompt = `Explain this term/phrase: "${text}"`;
 
-  // Add page context
   if (pageTitle || pageDomain) {
     userPrompt += `\n\n**Page Context:**`;
     if (pageTitle) userPrompt += `\n- Page Title: "${pageTitle}"`;
     if (pageDomain) userPrompt += `\n- Domain: ${pageDomain}`;
   }
 
-  // Add section heading
   if (nearestHeading) {
     userPrompt += `\n- Section: "${nearestHeading}"`;
   }
 
-  // Add surrounding text context
   if (context && context !== text) {
     userPrompt += `\n\n**Surrounding Text:**\n"${context}"`;
   }
@@ -241,23 +274,17 @@ Format your response as:
     { role: "user", content: userPrompt },
   ];
 
-  // Log to service worker console
-  // console.log('=== OpenRouter API Request (Explanation) ===');
-  // console.log('Model:', settings.model);
-  // console.log('Messages:', JSON.stringify(messages, null, 2));
-
-  // Send to content script for website console
   chrome.tabs
     .sendMessage(tabId, {
       action: "debugPrompt",
       type: "explanation",
       model: settings.model,
-      messages: messages,
+      messages,
     })
     .catch(() => {});
 
-  await streamOpenRouter(
-    settings.apiKey,
+  await streamRequest(
+    route,
     settings.model,
     messages,
     tabId,
@@ -266,7 +293,10 @@ Format your response as:
   );
 }
 
-// Stream chat conversation
+// ---------------------------------------------------------------------------
+// Chat handler
+// ---------------------------------------------------------------------------
+
 async function handleStreamingChat(
   popupId,
   messages,
@@ -281,34 +311,25 @@ async function handleStreamingChat(
     "apiKey",
     "model",
     "customInstructions",
+    "autoMode",
   ]);
 
-  if (!settings.apiKey) {
-    sendStreamUpdate(tabId, popupId, {
-      type: "error",
-      error: "API key not configured.",
-    });
-    return;
-  }
+  const route = resolveRoute(settings);
 
-  // Build comprehensive system prompt with all context (never gets trimmed)
   let systemPrompt = `You are a knowledgeable research assistant helping someone understand a specific topic.
 
 **Original Query Context:**
 - Selected Text: "${selectedText}"`;
 
-  // Add page context
   if (pageTitle || pageDomain) {
     if (pageTitle) systemPrompt += `\n- Page Title: "${pageTitle}"`;
     if (pageDomain) systemPrompt += `\n- Domain: ${pageDomain}`;
   }
 
-  // Add section heading
   if (nearestHeading) {
     systemPrompt += `\n- Section: "${nearestHeading}"`;
   }
 
-  // Add surrounding text context
   if (contextText && contextText !== selectedText) {
     systemPrompt += `\n- Surrounding Text: "${contextText}"`;
   }
@@ -322,7 +343,6 @@ Your role:
 - Stay focused on helping them understand the topic
 - Be conversational and helpful`;
 
-  // Add custom instructions if present
   if (settings.customInstructions && settings.customInstructions.trim()) {
     systemPrompt += `\n\n**User's Custom Instructions:**\n${settings.customInstructions.trim()}`;
   }
@@ -332,12 +352,6 @@ Your role:
     ...messages,
   ];
 
-  // Log to service worker console
-  // console.log('=== OpenRouter API Request (Chat) ===');
-  // console.log('Model:', settings.model);
-  // console.log('Messages:', JSON.stringify(formattedMessages, null, 2));
-
-  // Send to content script for website console
   chrome.tabs
     .sendMessage(tabId, {
       action: "debugPrompt",
@@ -347,8 +361,8 @@ Your role:
     })
     .catch(() => {});
 
-  await streamOpenRouter(
-    settings.apiKey,
+  await streamRequest(
+    route,
     settings.model,
     formattedMessages,
     tabId,
@@ -357,9 +371,12 @@ Your role:
   );
 }
 
-// Stream from OpenRouter API
-async function streamOpenRouter(
-  apiKey,
+// ---------------------------------------------------------------------------
+// Core streaming function — routes to backend or OpenRouter directly
+// ---------------------------------------------------------------------------
+
+async function streamRequest(
+  route,
   model,
   messages,
   tabId,
@@ -369,26 +386,51 @@ async function streamOpenRouter(
   try {
     sendStreamUpdate(tabId, popupId, { type: "start", messageType });
 
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
+    // Guard: manual mode but no API key configured
+    if (route.mode === "no-key") {
+      sendStreamUpdate(tabId, popupId, {
+        type: "error",
+        error:
+          "No API key configured. Open the extension popup, disable Automatic mode, and enter your OpenRouter API key.",
+        messageType,
+      });
+      return;
+    }
+
+    let response;
+
+    if (route.mode === "backend") {
+      // ── Use TermLens backend proxy ──────────────────────────────────────
+      response = await fetch(`${BACKEND_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens: messageType === "chat" ? 2000 : 500,
+          temperature: 0.7,
+          stream: true,
+        }),
+      });
+    } else {
+      // ── Use user's own OpenRouter API key ───────────────────────────────
+      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${route.apiKey}`,
           "HTTP-Referer": "chrome-extension://termlens",
           "X-Title": "TermLens",
         },
         body: JSON.stringify({
-          model: model,
-          messages: messages,
-          // Use 500 for quick explanation, 2000 for deep dive chat (allow longer responses)
+          model,
+          messages,
           max_tokens: messageType === "chat" ? 2000 : 500,
           temperature: 0.7,
-          stream: true, // Enable streaming!
+          stream: true,
         }),
-      },
-    );
+      });
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -416,16 +458,15 @@ async function streamOpenRouter(
 
       buffer += decoder.decode(value, { stream: true });
 
-      // Process complete SSE lines
       const lines = buffer.split("\n");
-      buffer = lines.pop() || ""; // Keep incomplete line in buffer
+      buffer = lines.pop() || "";
 
       for (const line of lines) {
         const trimmedLine = line.trim();
 
         if (!trimmedLine || !trimmedLine.startsWith("data: ")) continue;
 
-        const data = trimmedLine.slice(6); // Remove 'data: ' prefix
+        const data = trimmedLine.slice(6);
 
         if (data === "[DONE]") {
           sendStreamUpdate(tabId, popupId, {
@@ -438,10 +479,15 @@ async function streamOpenRouter(
 
         try {
           const parsed = JSON.parse(data);
+
+          // Handle error events forwarded from the backend
+          if (parsed.error) {
+            throw new Error(parsed.error);
+          }
+
           const delta = parsed.choices?.[0]?.delta?.content;
 
           if (delta) {
-            // Trim leading whitespace only if fullContent is still empty
             if (fullContent === "") {
               fullContent += delta.trimStart();
             } else {
@@ -458,13 +504,14 @@ async function streamOpenRouter(
             }
           }
         } catch (e) {
-          // Skip malformed JSON chunks
-          // console.log('Skipping malformed chunk:', data);
+          if (e.message && !e.message.includes("JSON")) {
+            throw e; // Re-throw real errors, not JSON parse errors
+          }
         }
       }
     }
   } catch (error) {
-    console.error("Streaming error:", error);
+    console.error("TermLens streaming error:", error);
     sendStreamUpdate(tabId, popupId, {
       type: "error",
       error: error.message,
@@ -473,7 +520,10 @@ async function streamOpenRouter(
   }
 }
 
-// Send stream update to content script (with popupId for targeting)
+// ---------------------------------------------------------------------------
+// Utility
+// ---------------------------------------------------------------------------
+
 function sendStreamUpdate(tabId, popupId, data) {
   chrome.tabs
     .sendMessage(tabId, { action: "streamUpdate", popupId, ...data })
