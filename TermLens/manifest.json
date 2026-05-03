@@ -1,12 +1,10 @@
 {
   "manifest_version": 3,
+  "author": "Ritesh Prajapati",
   "name": "TermLens",
   "version": "2.4.0",
   "description": "Highlight any term or sentence to get instant AI explanations and dive deeper with a contextual chatbot—without leaving the page.",
-  "permissions": [
-    "storage",
-    "activeTab"
-  ],
+  "permissions": ["storage", "activeTab"],
   "host_permissions": [
     "https://openrouter.ai/*",
     "https://api.termlens.com/*",
@@ -29,15 +27,9 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "css": [
-        "content/content.css"
-      ],
-      "js": [
-        "content/content.js"
-      ]
+      "matches": ["<all_urls>"],
+      "css": ["content/content.css"],
+      "js": ["content/content.js"]
     }
   ],
   "background": {
@@ -45,12 +37,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "icons/*"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

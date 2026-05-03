@@ -4,7 +4,7 @@
 // Constants
 // ---------------------------------------------------------------------------
 
-const BACKEND_URL = "http://localhost:8000"; // TermLens cloud proxy (no API key needed)
+const BACKEND_URL = "http://13.60.158.112:80";
 const SUPABASE_KEY = "sb_publishable_zWRBSm9ANHsVQvtcdAg3yg_dydoKGMy";
 const SUPABASE_URL = "https://muzxmpphoqprtxobxdrw.supabase.co";
 const SUPABASE_MODELS_URL = `${SUPABASE_URL}/rest/v1/models?select=name,slug`;

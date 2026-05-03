@@ -1,0 +1,11 @@
+[project]
+name = "termlens-backend"
+version = "1.0.0"
+description = "Backend proxy for the TermLens browser extension."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.115.0",
+  "httpx==0.28.1",
+  "python-dotenv==1.0.1",
+  "uvicorn==0.30.6",
+]
