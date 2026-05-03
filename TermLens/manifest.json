@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "author": "Ritesh Prajapati",
   "name": "TermLens",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Highlight any term or sentence to get instant AI explanations and dive deeper with a contextual chatbot—without leaving the page.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": [

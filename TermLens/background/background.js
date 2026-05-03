@@ -4,7 +4,7 @@
 // Constants
 // ---------------------------------------------------------------------------
 
-const BACKEND_URL = "http://13.60.158.112:80";
+const BACKEND_URL = "https://termlens-backend.vercel.app/";
 const SUPABASE_KEY = "sb_publishable_zWRBSm9ANHsVQvtcdAg3yg_dydoKGMy";
 const SUPABASE_URL = "https://muzxmpphoqprtxobxdrw.supabase.co";
 const SUPABASE_MODELS_URL = `${SUPABASE_URL}/rest/v1/models?select=name,slug`;
