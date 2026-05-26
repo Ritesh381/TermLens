@@ -150,6 +150,20 @@
   z-index: 1;
 }
 
+.color-btn[data-color="glass"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.6);
+  padding: 1px;
+}
+
+.color-btn[data-color="glass"] .glass-color-icon {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
 /* --- THEME SYSTEM --- */
 
 /* Base Colors (defaults) */
@@ -233,6 +247,11 @@
   --primary: #06b6d4;
   --primary-hover: #22d3ee;
   --primary-light: rgba(6, 182, 212, 0.1);
+}
+.color-glass {
+  --primary: #8cc7ff;
+  --primary-hover: #b7e2ff;
+  --primary-light: rgba(140, 199, 255, 0.16);
 }
 
 /* Component Specific Theming */

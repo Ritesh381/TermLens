@@ -40,8 +40,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const validationResult = document.getElementById("validation-result");
   const customModelsList = document.getElementById("custom-models-list");
   const customModelsItems = document.getElementById("custom-models-items");
+  const addModelSection = document.getElementById("add-model-section");
 
   let customModels = [];
+  let isAutoMode = true;
 
   // ── Load settings ─────────────────────────────────────────────────────────
   await loadSettings();
@@ -106,20 +108,76 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Auto-mode toggle (Automatic ↔ Manual API key)
   // =========================================================================
 
-  function applyAutoMode(isAuto) {
+  async function applyAutoMode(isAuto, preferredModel = null) {
+    isAutoMode = isAuto;
     if (isAuto) {
       manualKeyPanel.classList.add("hidden");
       updateStatus(null, true); // auto mode
+      await stashCustomModelsForCloud();
     } else {
       manualKeyPanel.classList.remove("hidden");
       updateStatus(apiKeyInput.value.trim(), false);
+      await restoreCustomModelsForManual();
     }
+
+    updateCustomModelControls();
+    populateModelSelect(preferredModel || modelSelect.value || null);
+    await enforceAutoModelSelection(preferredModel);
+  }
+
+  async function stashCustomModelsForCloud() {
+    if (customModels.length > 0) {
+      await chrome.storage.local.set({ customModels });
+    }
+    customModels = [];
+    await chrome.storage.sync.set({ customModels: [] });
+  }
+
+  async function restoreCustomModelsForManual() {
+    const localData = await chrome.storage.local.get(["customModels"]);
+    customModels = localData.customModels || [];
+    await chrome.storage.sync.set({ customModels });
+  }
+
+  function updateCustomModelControls() {
+    if (isAutoMode) {
+      addModelSection.classList.add("hidden");
+      addModelInputWrapper.classList.add("hidden");
+      addModelBtn.classList.remove("hidden");
+      customModelsList.classList.add("hidden");
+      hideValidationResult();
+    } else {
+      addModelSection.classList.remove("hidden");
+      renderCustomModelsList();
+    }
+  }
+
+  async function enforceAutoModelSelection(preferredModel = null) {
+    if (!isAutoMode || fetchedModels.length === 0) return;
+
+    let customModelsForCheck = customModels;
+    if (isAutoMode) {
+      const localData = await chrome.storage.local.get(["customModels"]);
+      customModelsForCheck = localData.customModels || [];
+    }
+
+    const currentModel = preferredModel || modelSelect.value || "";
+    const isCustomSelected = customModelsForCheck.some(
+      (model) => model.value === currentModel,
+    );
+
+    if (!isCustomSelected) return;
+
+    const fallbackModel = fetchedModels[0].value;
+    await chrome.storage.sync.set({ model: fallbackModel });
+    populateModelSelect(fallbackModel);
+    showToast("Cloud mode uses free models only", "error");
   }
 
   autoModeToggle.addEventListener("change", async () => {
     const isAuto = autoModeToggle.checked;
     await chrome.storage.sync.set({ autoMode: isAuto });
-    applyAutoMode(isAuto);
+    await applyAutoMode(isAuto, modelSelect.value || null);
     showToast(
       isAuto ? "Using TermLens Cloud" : "Using your API key",
       "success",
@@ -291,6 +349,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // =========================================================================
 
   addModelBtn.addEventListener("click", () => {
+    if (isAutoMode) {
+      showToast("Switch to manual mode to add models", "error");
+      return;
+    }
     addModelBtn.classList.add("hidden");
     addModelInputWrapper.classList.remove("hidden");
     customModelInput.focus();
@@ -324,6 +386,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   async function validateAndAddModel() {
+    if (isAutoMode) {
+      showValidationResult(
+        "Disable Automatic mode to add custom models",
+        "error",
+      );
+      return;
+    }
+
     const modelName = customModelInput.value.trim();
     const modelLabel = customLabelInput.value.trim() || modelName;
 
@@ -386,6 +456,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (response.ok) {
         const newModel = { value: modelName, label: modelLabel };
         customModels.push(newModel);
+        await chrome.storage.local.set({ customModels });
         await chrome.storage.sync.set({ customModels });
 
         populateModelSelect(modelName);
@@ -428,7 +499,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function populateModelSelect(selectedValue = null) {
     modelSelect.innerHTML = "";
-    const allModels = [...fetchedModels, ...customModels];
+    const allModels = isAutoMode
+      ? [...fetchedModels]
+      : [...fetchedModels, ...customModels];
 
     if (allModels.length === 0) {
       const option = document.createElement("option");
@@ -447,21 +520,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       modelSelect.appendChild(option);
     });
 
-    if (
-      selectedValue &&
-      !allModels.some((m) => m.value === selectedValue) &&
-      selectedValue !== ""
-    ) {
-      const option = document.createElement("option");
-      option.value = selectedValue;
-      option.textContent = selectedValue.split("/").pop() || selectedValue;
-      option.selected = true;
-      modelSelect.appendChild(option);
+    if (!isAutoMode) {
+      if (
+        selectedValue &&
+        !allModels.some((m) => m.value === selectedValue) &&
+        selectedValue !== ""
+      ) {
+        const option = document.createElement("option");
+        option.value = selectedValue;
+        option.textContent = selectedValue.split("/").pop() || selectedValue;
+        option.selected = true;
+        modelSelect.appendChild(option);
+      }
     }
   }
 
   function renderCustomModelsList() {
-    if (!customModels || customModels.length === 0) {
+    if (isAutoMode || !customModels || customModels.length === 0) {
       customModelsList.classList.add("hidden");
       return;
     }
@@ -500,6 +575,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (confirm(`Delete model "${model.label}"?`)) {
           const isDeletedModelSelected = modelSelect.value === model.value;
           customModels.splice(index, 1);
+          await chrome.storage.local.set({ customModels });
           await chrome.storage.sync.set({ customModels });
 
           if (isDeletedModelSelected) {
@@ -528,6 +604,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   modelSelect.addEventListener("change", async () => {
     const model = modelSelect.value;
+    const isCustomSelected = customModels.some((m) => m.value === model);
+
+    if (isAutoMode && isCustomSelected) {
+      await enforceAutoModelSelection();
+      return;
+    }
+
     await chrome.storage.sync.set({ model });
     const allModels = [...fetchedModels, ...customModels];
     const modelData = allModels.find((m) => m.value === model);
@@ -549,7 +632,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         "customInstructions",
         "autoMode",
       ]),
-      chrome.storage.local.get(["fetchedModels"]),
+      chrome.storage.local.get(["fetchedModels", "customModels"]),
     ]);
 
     // API key — must be set BEFORE applyAutoMode so updateStatus reads the correct value
@@ -560,7 +643,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Auto-mode (default: true)
     const isAuto = settings.autoMode !== false;
     autoModeToggle.checked = isAuto;
-    applyAutoMode(isAuto);
 
     // Custom instructions
     if (settings.customInstructions) {
@@ -569,8 +651,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Models
-    customModels = settings.customModels || [];
+    const syncedCustomModels = settings.customModels || [];
+    const localCustomModels = localData.customModels || [];
     fetchedModels = localData.fetchedModels || [];
+
+    if (localCustomModels.length === 0 && syncedCustomModels.length > 0) {
+      await chrome.storage.local.set({ customModels: syncedCustomModels });
+    }
+
+    if (isAuto) {
+      if (syncedCustomModels.length > 0) {
+        await chrome.storage.sync.set({ customModels: [] });
+      }
+      customModels = [];
+    } else {
+      customModels =
+        localCustomModels.length > 0 ? localCustomModels : syncedCustomModels;
+      if (customModels.length > 0) {
+        await chrome.storage.sync.set({ customModels });
+        await chrome.storage.local.set({ customModels });
+      }
+    }
 
     if (fetchedModels.length === 0) {
       chrome.runtime.sendMessage({ action: "refreshModels" }, (response) => {
@@ -579,16 +680,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (data.fetchedModels && data.fetchedModels.length > 0) {
               fetchedModels = data.fetchedModels;
               populateModelSelect(settings.model);
+              enforceAutoModelSelection();
             }
           });
         }
       });
     }
 
-    populateModelSelect(settings.model);
-    renderCustomModelsList();
-
-    if (settings.model) modelSelect.value = settings.model;
+    await applyAutoMode(isAuto, settings.model);
 
     // Scroll with page
     scrollWithPageToggle.checked = settings.scrollWithPage !== false;

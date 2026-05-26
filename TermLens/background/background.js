@@ -214,6 +214,37 @@ function resolveRoute(settings) {
     : { mode: "no-key", apiKey: null };
 }
 
+async function resolveModelForRoute(settings) {
+  const isAuto = settings.autoMode !== false;
+  if (!isAuto) return settings.model;
+
+  const localData = await chrome.storage.local.get([
+    "fetchedModels",
+    "customModels",
+  ]);
+
+  let fetchedModels = localData.fetchedModels || [];
+  const customModels = localData.customModels || [];
+  const currentModel = settings.model || "";
+  const isCustomModel = customModels.some((m) => m.value === currentModel);
+
+  if (isCustomModel) {
+    if (fetchedModels.length === 0) {
+      await checkAndFetchModels();
+      const refreshed = await chrome.storage.local.get(["fetchedModels"]);
+      fetchedModels = refreshed.fetchedModels || [];
+    }
+
+    if (fetchedModels.length > 0) {
+      const fallbackModel = fetchedModels[0].value;
+      await chrome.storage.sync.set({ model: fallbackModel });
+      return fallbackModel;
+    }
+  }
+
+  return currentModel;
+}
+
 // ---------------------------------------------------------------------------
 // Explanation handler
 // ---------------------------------------------------------------------------
@@ -232,6 +263,7 @@ async function handleStreamingExplanation(
     "model",
     "customInstructions",
     "autoMode",
+    "customModels",
   ]);
 
   const route = resolveRoute(settings);
@@ -274,18 +306,20 @@ Format your response as:
     { role: "user", content: userPrompt },
   ];
 
+  const resolvedModel = await resolveModelForRoute(settings);
+
   chrome.tabs
     .sendMessage(tabId, {
       action: "debugPrompt",
       type: "explanation",
-      model: settings.model,
+      model: resolvedModel,
       messages,
     })
     .catch(() => {});
 
   await streamRequest(
     route,
-    settings.model,
+    resolvedModel,
     messages,
     tabId,
     popupId,
@@ -312,6 +346,7 @@ async function handleStreamingChat(
     "model",
     "customInstructions",
     "autoMode",
+    "customModels",
   ]);
 
   const route = resolveRoute(settings);
@@ -352,18 +387,20 @@ Your role:
     ...messages,
   ];
 
+  const resolvedModel = await resolveModelForRoute(settings);
+
   chrome.tabs
     .sendMessage(tabId, {
       action: "debugPrompt",
       type: "chat",
-      model: settings.model,
+      model: resolvedModel,
       messages: formattedMessages,
     })
     .catch(() => {});
 
   await streamRequest(
     route,
-    settings.model,
+    resolvedModel,
     formattedMessages,
     tabId,
     popupId,
